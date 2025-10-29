@@ -1,5 +1,3 @@
-// ui/screens/ProductMenuScreen.kt
-
 package com.example.level_up_gamer.ui.screens
 
 import androidx.compose.foundation.Image
@@ -22,12 +20,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.example.level_up_gamer.R // 💡 Importante para R.drawable
 import com.example.level_up_gamer.model.Product
-import com.example.level_up_gamer.viewmodel.ProductViewModel
 import com.example.level_up_gamer.ui.navigation.Screen
+import com.example.level_up_gamer.viewmodel.ProductViewModel
 
-
-
+// 💡 Anotación necesaria para el TopAppBar
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProductMenuScreen(
@@ -38,19 +36,31 @@ fun ProductMenuScreen(
 
     Scaffold(
         topBar = {
+            // ✅ INICIO DE SECCIÓN MODIFICADA (TopAppBar con Logo)
             TopAppBar(
-                title = { Text("Menú Level Up Gamer") },
+                title = {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Image(
+                            painter = painterResource(id = R.drawable.level_up_logo),
+                            contentDescription = "Logo Level Up Gamer",
+                            modifier = Modifier.size(32.dp) // Tamaño del logo
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Menú de Productos")
+                    }
+                },
                 actions = {
                     IconButton(onClick = { navController.navigate(Screen.UserProfile.route) }) {
                         Icon(Icons.Default.Person, contentDescription = "Perfil")
                     }
                 }
             )
+            // ✅ FIN DE SECCIÓN MODIFICADA
         }
     ) { paddingValues ->
         LazyColumn(
             contentPadding = paddingValues,
-            verticalArrangement = Arrangement.spacedBy(8.dp) // Espaciado entre tarjetas
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             if (products.isEmpty()) {
                 item { Text("Cargando productos...", modifier = Modifier.padding(16.dp)) }
@@ -63,10 +73,9 @@ fun ProductMenuScreen(
     }
 }
 
-// 💡 Nuevo y mejorado componente de tarjeta de producto
+// Componente de Tarjeta de Producto (Sin cambios)
 @Composable
 fun ProductCard(product: Product) {
-    // Definimos el color del indicador de stock
     val stockColor = when {
         product.stock > 10 -> Color.Green
         product.stock > 0 -> Color.Yellow
@@ -89,7 +98,7 @@ fun ProductCard(product: Product) {
             Image(
                 painter = painterResource(id = product.imageResId),
                 contentDescription = product.name,
-                contentScale = ContentScale.Crop, // Escala para llenar el espacio
+                contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .size(90.dp)
                     .padding(end = 12.dp)
@@ -97,7 +106,7 @@ fun ProductCard(product: Product) {
 
             // 2. Columna de Texto
             Column(
-                modifier = Modifier.weight(1f) // Usa el espacio restante
+                modifier = Modifier.weight(1f)
             ) {
                 Text(
                     product.name,
@@ -118,13 +127,12 @@ fun ProductCard(product: Product) {
                 modifier = Modifier.padding(start = 8.dp)
             ) {
                 Text(
-                    "€${String.format("%.2f", product.price)}", // Formato de moneda
+                    "€${String.format("%.2f", product.price)}",
                     style = MaterialTheme.typography.titleLarge,
                     color = MaterialTheme.colorScheme.primary
                 )
                 Spacer(modifier = Modifier.height(4.dp))
 
-                // Indicador de Stock
                 Text(
                     text = if (product.stock > 0) "Stock: ${product.stock}" else "¡AGOTADO!",
                     color = stockColor,
@@ -138,4 +146,3 @@ fun ProductCard(product: Product) {
         }
     }
 }
-
