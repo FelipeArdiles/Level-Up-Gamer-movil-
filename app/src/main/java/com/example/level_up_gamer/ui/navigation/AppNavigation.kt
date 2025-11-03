@@ -6,6 +6,7 @@ import com.example.level_up_gamer.ui.screens.LoginScreen
 import com.example.level_up_gamer.ui.screens.ProductMenuScreen
 import com.example.level_up_gamer.ui.screens.ProfileScreen
 import com.example.level_up_gamer.ui.screens.RegistrationScreen
+import com.example.level_up_gamer.ui.screens.CartScreen
 import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -16,6 +17,7 @@ sealed class Screen(val route: String) {
     object ProductMenu : Screen("product_menu_screen")
     object UserProfile : Screen("user_profile_screen")
     object Register : Screen("register_screen")
+    object Cart : Screen("cart_screen")
     // Aquí puedes añadir rutas con argumentos, ej: object ProductDetail : Screen("product_detail/{id}")
 }
 
@@ -47,6 +49,11 @@ fun AppNavigation() {
         // 3. Perfil de Usuario
         composable(Screen.UserProfile.route) {
             ProfileScreen(navController = navController)
+        }
+
+        // 4. Carrito de Compras
+        composable(Screen.Cart.route) {
+            CartScreen(navController = navController)
         }
     }
 }
