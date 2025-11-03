@@ -92,6 +92,11 @@ fun LoginScreen(
                     Text("Iniciar Sesión")
                 }
             }
+
+            Spacer(modifier = Modifier.height(12.dp))
+            TextButton(onClick = { navController.navigate(Screen.Register.route) }) {
+                Text("¿No tienes cuenta? Regístrate")
+            }
         }
     }
 }

@@ -58,7 +58,7 @@ class AuthViewModel(
             } else {
                 // Fallo
                 _uiState.value.copy(
-                    errorMessage = "Credenciales incorrectas. Prueba con test@gamer.com / password123",
+                    errorMessage = "Credenciales incorrectas. Puedes registrarte si no tienes cuenta.",
                     isLoading = false
                 )
             }
