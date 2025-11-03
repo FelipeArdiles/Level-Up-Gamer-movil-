@@ -50,11 +50,20 @@ fun CartScreen(
             TopAppBar(
                 title = {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Image(
-                            painter = painterResource(id = R.drawable.level_up_logo),
-                            contentDescription = "Logo",
+                        IconButton(
+                            onClick = { 
+                                navController.navigate(Screen.ProductMenu.route) {
+                                    popUpTo(Screen.ProductMenu.route) { inclusive = false }
+                                }
+                            },
                             modifier = Modifier.size(32.dp)
-                        )
+                        ) {
+                            Image(
+                                painter = painterResource(id = R.drawable.level_up_logo),
+                                contentDescription = "Logo",
+                                modifier = Modifier.size(32.dp)
+                            )
+                        }
                         Spacer(modifier = Modifier.width(8.dp))
                         Text("Carrito de Compras")
                     }

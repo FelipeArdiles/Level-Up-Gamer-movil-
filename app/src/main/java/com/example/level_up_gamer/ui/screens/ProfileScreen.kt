@@ -35,11 +35,20 @@ fun ProfileScreen(
             TopAppBar(
                 title = {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Image(
-                            painter = painterResource(id = R.drawable.level_up_logo),
-                            contentDescription = "Logo Level Up Gamer",
-                            modifier = Modifier.size(32.dp) // Tamaño del logo
-                        )
+                        IconButton(
+                            onClick = { 
+                                navController.navigate(Screen.ProductMenu.route) {
+                                    popUpTo(Screen.ProductMenu.route) { inclusive = false }
+                                }
+                            },
+                            modifier = Modifier.size(32.dp)
+                        ) {
+                            Image(
+                                painter = painterResource(id = R.drawable.level_up_logo),
+                                contentDescription = "Logo Level Up Gamer",
+                                modifier = Modifier.size(32.dp)
+                            )
+                        }
                         Spacer(modifier = Modifier.width(8.dp))
                         Text("Mi Perfil de Jugador")
                     }
