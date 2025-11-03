@@ -22,7 +22,6 @@ class ProductViewModel : ViewModel() {
 
     private fun loadProducts() {
         viewModelScope.launch {
-            // Leer desde Room (ya se siembran 3 por defecto en la inicialización)
             _products.value = DatabaseProvider.db().productDao().getAll()
         }
     }

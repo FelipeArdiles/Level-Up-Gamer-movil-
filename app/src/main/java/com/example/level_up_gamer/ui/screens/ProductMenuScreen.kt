@@ -24,6 +24,9 @@ import com.example.level_up_gamer.R // 💡 Importante para R.drawable
 import com.example.level_up_gamer.model.Product
 import com.example.level_up_gamer.ui.navigation.Screen
 import com.example.level_up_gamer.viewmodel.ProductViewModel
+import java.text.NumberFormat
+import java.util.Currency
+import java.util.Locale
 
 // 💡 Anotación necesaria para el TopAppBar
 @OptIn(ExperimentalMaterial3Api::class)
@@ -126,8 +129,14 @@ fun ProductCard(product: Product) {
                 horizontalAlignment = Alignment.End,
                 modifier = Modifier.padding(start = 8.dp)
             ) {
+                val eurToClp = 1000.0 // tasa fija editable
+                val clpAmount = product.price * eurToClp
+                val clpFormat = NumberFormat.getCurrencyInstance(Locale("es", "CL")).apply {
+                    currency = Currency.getInstance("CLP")
+                    maximumFractionDigits = 0
+                }
                 Text(
-                    "€${String.format("%.2f", product.price)}",
+                    clpFormat.format(clpAmount),
                     style = MaterialTheme.typography.titleLarge,
                     color = MaterialTheme.colorScheme.primary
                 )
