@@ -32,7 +32,7 @@ import java.util.Locale
 @Composable
 fun CartScreen(
     navController: NavController,
-    productViewModel: ProductViewModel = viewModel()
+    productViewModel: ProductViewModel
 ) {
     val cartItems by productViewModel.cartItems.collectAsState()
     val uiState by productViewModel.uiState.collectAsState()
@@ -44,10 +44,6 @@ fun CartScreen(
         }
     }
     
-    // Asegurar que el carrito se recargue cuando se elimina algo
-    LaunchedEffect(cartItems.size) {
-        productViewModel.refreshCart()
-    }
 
     Scaffold(
         topBar = {

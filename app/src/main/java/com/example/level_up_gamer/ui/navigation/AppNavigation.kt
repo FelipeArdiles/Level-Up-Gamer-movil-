@@ -8,9 +8,11 @@ import com.example.level_up_gamer.ui.screens.ProfileScreen
 import com.example.level_up_gamer.ui.screens.RegistrationScreen
 import com.example.level_up_gamer.ui.screens.CartScreen
 import androidx.compose.runtime.Composable
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.level_up_gamer.viewmodel.ProductViewModel
 
 sealed class Screen(val route: String) {
     object Login : Screen("login_screen")
@@ -25,6 +27,9 @@ sealed class Screen(val route: String) {
 fun AppNavigation() {
     // NavController es el objeto que maneja el estado de la navegación
     val navController = rememberNavController()
+    
+    // ViewModel compartido para productos y carrito
+    val productViewModel: ProductViewModel = viewModel()
 
     // NavHost enlaza el NavController con las pantallas (Composable)
     NavHost(
@@ -43,7 +48,10 @@ fun AppNavigation() {
 
         // 2. Menú de Productos
         composable(Screen.ProductMenu.route) {
-            ProductMenuScreen(navController = navController)
+            ProductMenuScreen(
+                navController = navController,
+                productViewModel = productViewModel
+            )
         }
 
         // 3. Perfil de Usuario
@@ -53,7 +61,10 @@ fun AppNavigation() {
 
         // 4. Carrito de Compras
         composable(Screen.Cart.route) {
-            CartScreen(navController = navController)
+            CartScreen(
+                navController = navController,
+                productViewModel = productViewModel
+            )
         }
     }
 }

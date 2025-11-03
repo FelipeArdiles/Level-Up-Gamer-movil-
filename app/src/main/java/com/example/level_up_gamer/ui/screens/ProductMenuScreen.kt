@@ -22,7 +22,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.compose.runtime.DisposableEffect
 import androidx.navigation.NavController
 import com.example.level_up_gamer.R // 💡 Importante para R.drawable
 import com.example.level_up_gamer.model.Product
@@ -37,21 +36,15 @@ import java.util.Locale
 @Composable
 fun ProductMenuScreen(
     navController: NavController,
-    productViewModel: ProductViewModel = viewModel()
+    productViewModel: ProductViewModel
 ) {
     val products by productViewModel.products.collectAsState()
     val cartItemCount by productViewModel.cartItemCount.collectAsState()
     val uiState by productViewModel.uiState.collectAsState()
 
-    // Recargar el carrito cuando la pantalla se vuelve visible o se recompone
-    LaunchedEffect(navController.currentBackStackEntry?.id) {
+    // Recargar el carrito cuando se vuelve a esta pantalla
+    LaunchedEffect(navController.currentBackStackEntry) {
         productViewModel.refreshCart()
-    }
-    
-    // También recargar cuando se vuelve a esta pantalla
-    DisposableEffect(Unit) {
-        productViewModel.refreshCart()
-        onDispose { }
     }
 
     Scaffold(
