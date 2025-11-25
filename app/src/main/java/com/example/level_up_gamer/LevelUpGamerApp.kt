@@ -1,0 +1,12 @@
+
+package com.example.level_up_gamer
+
+import android.app.Application
+import com.example.level_up_gamer.data.DatabaseProvider
+
+class LevelUpGamerApp : Application() {
+    override fun onCreate() {
+        super.onCreate()
+        DatabaseProvider.init(this)
+    }
+}

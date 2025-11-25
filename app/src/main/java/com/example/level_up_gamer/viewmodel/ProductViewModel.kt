@@ -42,8 +42,6 @@ class ProductViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 _uiState.value = _uiState.value.copy(isLoading = true)
-                // Pequeño delay para asegurar que la DB esté lista
-                kotlinx.coroutines.delay(100)
                 _products.value = DatabaseProvider.db().productDao().getAll()
                 _uiState.value = _uiState.value.copy(isLoading = false)
             } catch (e: Exception) {
