@@ -93,7 +93,16 @@ fun ProfileScreen(
                         ProfileInfoItem(label = "ID de Jugador:", value = user!!.id)
                     }
                 }
-                Spacer(modifier = Modifier.height(48.dp))
+                Spacer(modifier = Modifier.height(32.dp))
+
+                OutlinedButton(
+                    onClick = { navController.navigate(Screen.EditProfile.route) },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Editar Perfil")
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
 
                 Button(
                     onClick = {

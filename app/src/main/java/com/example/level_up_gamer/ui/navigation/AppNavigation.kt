@@ -7,11 +7,15 @@ import com.example.level_up_gamer.ui.screens.ProductMenuScreen
 import com.example.level_up_gamer.ui.screens.ProfileScreen
 import com.example.level_up_gamer.ui.screens.RegistrationScreen
 import com.example.level_up_gamer.ui.screens.CartScreen
+import com.example.level_up_gamer.ui.screens.EditProfileScreen
+import com.example.level_up_gamer.ui.screens.ProductFormScreen
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
 import com.example.level_up_gamer.viewmodel.ProductViewModel
 
 sealed class Screen(val route: String) {
@@ -20,7 +24,11 @@ sealed class Screen(val route: String) {
     object UserProfile : Screen("user_profile_screen")
     object Register : Screen("register_screen")
     object Cart : Screen("cart_screen")
-    // Aquí puedes añadir rutas con argumentos, ej: object ProductDetail : Screen("product_detail/{id}")
+    object EditProfile : Screen("edit_profile_screen")
+    object AddProduct : Screen("add_product_screen")
+    object EditProduct : Screen("edit_product_screen/{productId}") {
+        fun buildRoute(productId: Int) = "edit_product_screen/$productId"
+    }
 }
 
 @Composable
@@ -59,10 +67,33 @@ fun AppNavigation() {
             ProfileScreen(navController = navController)
         }
 
+        composable(Screen.EditProfile.route) {
+            EditProfileScreen(navController = navController)
+        }
+
         // 4. Carrito de Compras
         composable(Screen.Cart.route) {
             CartScreen(
                 navController = navController,
+                productViewModel = productViewModel
+            )
+        }
+
+        composable(Screen.AddProduct.route) {
+            ProductFormScreen(
+                navController = navController,
+                productViewModel = productViewModel
+            )
+        }
+
+        composable(
+            route = Screen.EditProduct.route,
+            arguments = listOf(navArgument("productId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val productId = backStackEntry.arguments?.getInt("productId")
+            ProductFormScreen(
+                navController = navController,
+                productId = productId,
                 productViewModel = productViewModel
             )
         }

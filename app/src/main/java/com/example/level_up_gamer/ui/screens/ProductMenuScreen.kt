@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Add
@@ -84,6 +85,11 @@ fun ProductMenuScreen(
                 }
             )
             // ✅ FIN DE SECCIÓN MODIFICADA
+        },
+        floatingActionButton = {
+            FloatingActionButton(onClick = { navController.navigate(Screen.AddProduct.route) }) {
+                Icon(Icons.Default.Add, contentDescription = "Agregar producto")
+            }
         }
     ) { paddingValues ->
         LazyColumn(
@@ -149,7 +155,10 @@ fun ProductMenuScreen(
                 items(products) { product ->
                     ProductCard(
                         product = product,
-                        onAddToCart = { productViewModel.addToCart(product.id) }
+                        onAddToCart = { productViewModel.addToCart(product.id) },
+                        onEditProduct = {
+                            navController.navigate(Screen.EditProduct.buildRoute(product.id))
+                        }
                     )
                 }
             }
@@ -161,7 +170,8 @@ fun ProductMenuScreen(
 @Composable
 fun ProductCard(
     product: Product,
-    onAddToCart: () -> Unit
+    onAddToCart: () -> Unit,
+    onEditProduct: () -> Unit
 ) {
     val stockColor = when {
         product.stock > 10 -> Color.Green
@@ -262,14 +272,27 @@ fun ProductCard(
             
             // Botón Agregar abajo
             Spacer(modifier = Modifier.height(8.dp))
-            Button(
-                onClick = onAddToCart,
-                enabled = product.stock > 0,
-                modifier = Modifier.fillMaxWidth()
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))
-                Spacer(modifier = Modifier.width(4.dp))
-                Text("Agregar al Carrito")
+                Button(
+                    onClick = onAddToCart,
+                    enabled = product.stock > 0,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text("Al carrito")
+                }
+                OutlinedButton(
+                    onClick = onEditProduct,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text("Editar")
+                }
             }
         }
     }

@@ -29,6 +29,7 @@ class ProductViewModel : ViewModel() {
 
     data class ProductUiState(
         val isLoading: Boolean = false,
+        val isProcessing: Boolean = false,
         val errorMessage: String? = null,
         val successMessage: String? = null
     )
@@ -229,5 +230,88 @@ class ProductViewModel : ViewModel() {
 
     fun refreshCart() {
         loadCart()
+    }
+
+    fun getProduct(productId: Int): Product? = _products.value.firstOrNull { it.id == productId }
+
+    fun createProduct(
+        name: String,
+        description: String,
+        price: Double,
+        stock: Int,
+        imageResId: Int
+    ) {
+        viewModelScope.launch {
+            try {
+                _uiState.value = _uiState.value.copy(
+                    isProcessing = true,
+                    errorMessage = null,
+                    successMessage = null
+                )
+                val dao = DatabaseProvider.db().productDao()
+                val nextId = (_products.value.maxOfOrNull { it.id } ?: 0) + 1
+                val safeStock = stock.coerceAtLeast(0)
+                dao.insert(
+                    Product(
+                        id = nextId,
+                        name = name,
+                        price = price,
+                        description = description,
+                        imageResId = imageResId,
+                        stock = safeStock
+                    )
+                )
+                loadProducts()
+                _uiState.value = _uiState.value.copy(
+                    isProcessing = false,
+                    successMessage = "Producto creado"
+                )
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    isProcessing = false,
+                    errorMessage = "Error al crear producto: ${e.message}"
+                )
+            }
+        }
+    }
+
+    fun updateProduct(
+        productId: Int,
+        name: String,
+        description: String,
+        price: Double,
+        stock: Int,
+        imageResId: Int
+    ) {
+        viewModelScope.launch {
+            try {
+                _uiState.value = _uiState.value.copy(
+                    isProcessing = true,
+                    errorMessage = null,
+                    successMessage = null
+                )
+                val dao = DatabaseProvider.db().productDao()
+                dao.insert(
+                    Product(
+                        id = productId,
+                        name = name,
+                        price = price,
+                        description = description,
+                        imageResId = imageResId,
+                        stock = stock.coerceAtLeast(0)
+                    )
+                )
+                loadProducts()
+                _uiState.value = _uiState.value.copy(
+                    isProcessing = false,
+                    successMessage = "Producto actualizado"
+                )
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    isProcessing = false,
+                    errorMessage = "Error al actualizar producto: ${e.message}"
+                )
+            }
+        }
     }
 }
