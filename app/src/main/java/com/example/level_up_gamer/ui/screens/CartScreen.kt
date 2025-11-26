@@ -35,21 +35,30 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.runtime.remember
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.level_up_gamer.R
@@ -70,8 +79,25 @@ fun CartScreen(
     val cartItems by productViewModel.cartItems.collectAsState()
     val uiState by productViewModel.uiState.collectAsState()
 
-    LaunchedEffect(uiState.errorMessage, uiState.successMessage) {
-        if (uiState.errorMessage != null || uiState.successMessage != null) {
+    // Manejar mensajes de éxito: limpiar inmediatamente si no es compra exitosa, o después de 3 segundos si lo es
+    LaunchedEffect(uiState.successMessage) {
+        val message = uiState.successMessage
+        if (message != null) {
+            if (message.contains("Compra realizada exitosamente", ignoreCase = true)) {
+                // Esperar 3 segundos antes de limpiar el mensaje de compra exitosa
+                kotlinx.coroutines.delay(3000)
+                productViewModel.clearMessages()
+            } else {
+                // Limpiar inmediatamente si no es mensaje de compra exitosa
+                kotlinx.coroutines.delay(100)
+                productViewModel.clearMessages()
+            }
+        }
+    }
+
+    // Limpiar mensajes de error después de 3 segundos
+    LaunchedEffect(uiState.errorMessage) {
+        if (uiState.errorMessage != null) {
             kotlinx.coroutines.delay(3000)
             productViewModel.clearMessages()
         }
@@ -85,6 +111,123 @@ fun CartScreen(
             .fillMaxSize()
             .background(backgroundBrush)
     ) {
+        // Overlay de mensaje de éxito llamativo - Solo para compra exitosa
+        uiState.successMessage?.let { success ->
+            // Solo mostrar el overlay si el mensaje es de compra exitosa
+            if (success.contains("Compra realizada exitosamente", ignoreCase = true)) {
+                AnimatedVisibility(
+                    visible = true,
+                    enter = fadeIn(animationSpec = tween(300)) + scaleIn(
+                        initialScale = 0.5f,
+                        animationSpec = spring(
+                            dampingRatio = 0.6f,
+                            stiffness = 300f
+                        )
+                    ),
+                    exit = fadeOut(animationSpec = tween(300)) + scaleOut(
+                        targetScale = 0.8f,
+                        animationSpec = tween(200)
+                    )
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color.Black.copy(alpha = 0.7f)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        val neonGreen = MaterialTheme.colorScheme.primary
+                        val neonGreenBright = Color(0xFF00FF88)
+                        
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth(0.75f)
+                                .shadow(
+                                    elevation = 20.dp,
+                                    shape = RoundedCornerShape(20.dp),
+                                    spotColor = neonGreen
+                                ),
+                            shape = RoundedCornerShape(20.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = Color(0xFF0A1A0F)
+                            ),
+                            border = BorderStroke(
+                                width = 2.5.dp,
+                                brush = Brush.linearGradient(
+                                    colors = listOf(
+                                        neonGreen,
+                                        neonGreenBright,
+                                        neonGreen
+                                    )
+                                )
+                            )
+                        ) {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .background(
+                                        brush = Brush.verticalGradient(
+                                            colors = listOf(
+                                                Color(0xFF0A1A0F),
+                                                Color(0xFF051A0F),
+                                                Color(0xFF0A1A0F)
+                                            )
+                                        )
+                                    )
+                                    .padding(24.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                // Icono de éxito
+                                Text(
+                                    text = "✓",
+                                    style = MaterialTheme.typography.displayMedium,
+                                    color = neonGreen,
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier.padding(bottom = 12.dp)
+                                )
+                                
+                                Text(
+                                    text = "¡COMPRA EXITOSA!",
+                                    style = MaterialTheme.typography.headlineSmall,
+                                    color = neonGreen,
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier.padding(bottom = 6.dp)
+                                )
+                                
+                                Text(
+                                    text = success,
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = Color.White,
+                                    fontWeight = FontWeight.Medium,
+                                    modifier = Modifier.padding(top = 6.dp)
+                                )
+                                
+                                Spacer(modifier = Modifier.height(12.dp))
+                                
+                                // Efecto de brillo neón
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(2.dp)
+                                        .background(
+                                            brush = Brush.horizontalGradient(
+                                                colors = listOf(
+                                                    Color.Transparent,
+                                                    neonGreen.copy(alpha = 0.8f),
+                                                    neonGreenBright,
+                                                    neonGreen.copy(alpha = 0.8f),
+                                                    Color.Transparent
+                                                )
+                                            )
+                                        )
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
         Scaffold(
             containerColor = Color.Transparent,
             topBar = {
@@ -93,8 +236,12 @@ fun CartScreen(
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             IconButton(
                                 onClick = {
+                                    // Navegar al menú de productos de forma segura
                                     navController.navigate(Screen.ProductMenu.route) {
-                                        popUpTo(Screen.ProductMenu.route) { inclusive = false }
+                                        // Limpiar el back stack desde el carrito
+                                        popUpTo(Screen.Cart.route) { inclusive = true }
+                                        // Evitar múltiples instancias de la misma pantalla
+                                        launchSingleTop = true
                                     }
                                 },
                                 modifier = Modifier.size(32.dp)
@@ -153,7 +300,8 @@ fun CartScreen(
                                 Text(
                                     "Total:",
                                     style = MaterialTheme.typography.titleLarge,
-                                    fontWeight = FontWeight.Bold
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
                                 Text(
                                     clpFormat.format(clpTotal),
@@ -226,28 +374,6 @@ fun CartScreen(
                             }
                         }
                     }
-                    uiState.successMessage?.let { success ->
-                        item {
-                            AnimatedVisibility(
-                                visible = true,
-                                enter = fadeIn() + expandVertically(),
-                                exit = fadeOut() + shrinkVertically()
-                            ) {
-                                Card(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(16.dp),
-                                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
-                                ) {
-                                    Text(
-                                        text = success,
-                                        modifier = Modifier.padding(16.dp),
-                                        color = MaterialTheme.colorScheme.onPrimaryContainer
-                                    )
-                                }
-                            }
-                        }
-                    }
                     items(cartItems) { item ->
                         CartItemCard(
                             item = item,
@@ -283,9 +409,9 @@ fun CartItemCard(
             .padding(horizontal = 8.dp, vertical = 4.dp),
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f)
+            containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f)
         ),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f))
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f))
     ) {
         Row(
             modifier = Modifier
@@ -318,7 +444,8 @@ fun CartItemCard(
                 Text(
                     item.product.name,
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
                     clpFormat.format(clpAmount),
@@ -338,23 +465,36 @@ fun CartItemCard(
                         onClick = { onQuantityChange(item.cartItem.quantity - 1) },
                         modifier = Modifier.size(32.dp)
                     ) {
-                        Text("-", style = MaterialTheme.typography.titleLarge)
+                        Text(
+                            "-",
+                            style = MaterialTheme.typography.titleLarge,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
                     }
                     Text(
                         item.cartItem.quantity.toString(),
                         style = MaterialTheme.typography.titleMedium,
-                        modifier = Modifier.padding(horizontal = 8.dp)
+                        modifier = Modifier.padding(horizontal = 8.dp),
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                     IconButton(
                         onClick = { onQuantityChange(item.cartItem.quantity + 1) },
                         enabled = item.product.stock > item.cartItem.quantity,
                         modifier = Modifier.size(32.dp)
                     ) {
-                        Text("+", style = MaterialTheme.typography.titleLarge)
+                        Text(
+                            "+",
+                            style = MaterialTheme.typography.titleLarge,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
                     }
                 }
                 IconButton(onClick = onRemove) {
-                    Icon(Icons.Default.Delete, contentDescription = "Eliminar")
+                    Icon(
+                        Icons.Default.Delete,
+                        contentDescription = "Eliminar",
+                        tint = MaterialTheme.colorScheme.error
+                    )
                 }
             }
         }
