@@ -12,7 +12,6 @@ import com.example.level_up_gamer.ui.theme.Theme
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        DatabaseProvider.init(applicationContext)
         setContent {
             // Usa el nombre correcto del tema aquí
             Theme {

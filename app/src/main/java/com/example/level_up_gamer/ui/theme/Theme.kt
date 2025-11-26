@@ -19,10 +19,15 @@ private val DarkColorScheme = darkColorScheme(
     primary = PrimaryGreen,          // Verde principal para botones, AppBar iconos
     onPrimary = OnPrimaryDark,       // Texto sobre PrimaryGreen
     secondary = SecondaryDark,       // Verde claro para realces
+    onSecondary = OnSecondaryDark,   // Texto sobre Secondary
     background = BackgroundDark,     // Negro profundo
+    onBackground = OnBackgroundLight, // Texto sobre Background
     surface = SurfaceDark,           // Gris oscuro para Cards, TextFields
     onSurface = OnSurfaceLight,      // Texto sobre Surface/Background
-    error = ErrorRed                 // Rojo para errores de login
+    surfaceVariant = Color(0xFF2A2A2A), // Variante de superficie
+    onSurfaceVariant = Color(0xFFCCCCCC), // Texto sobre surfaceVariant
+    error = ErrorRed,                // Rojo para errores de login
+    onError = OnError                // Texto sobre error
 )
 
 // 2. Esquema de Colores Claro (Por si acaso, aunque no lo usaremos)

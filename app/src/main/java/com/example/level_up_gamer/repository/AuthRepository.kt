@@ -22,22 +22,34 @@ class AuthRepository {
      */
     suspend fun login(email: String, password: String): User? {
         delay(500)
-        // 1) Buscar usuario en Room por email+password
         val dao = DatabaseProvider.db().userDao()
-        val user = dao.getByEmailAndPassword(email, password)
-        if (user != null) return user
 
-        // 2) Compatibilidad: permitir el usuario de demo y persistirlo si coincide
-        if (email == VALID_EMAIL && password == VALID_PASSWORD) {
-            val demo = User(
-                id = "user123",
-                username = "Juan Gamer",
-                email = VALID_EMAIL,
-                password = VALID_PASSWORD
-            )
-            dao.insert(demo)
-            return demo
+        // 1. Buscar usuario por email y contraseña
+        val user = dao.getByEmailAndPassword(email, password)
+        if (user != null) {
+            return user
         }
+
+        // 2. Si no se encuentra, verificar si son las credenciales del usuario de demostración
+        if (email == VALID_EMAIL && password == VALID_PASSWORD) {
+            // Verificar si el usuario de demostración ya existe en la base de datos
+            val demoUser = dao.getByEmail(VALID_EMAIL)
+            if (demoUser == null) {
+                // Si no existe, crearlo y persistirlo
+                val newDemoUser = User(
+                    id = "user123",
+                    username = "Juan Gamer",
+                    email = VALID_EMAIL,
+                    password = VALID_PASSWORD
+                )
+                dao.insert(newDemoUser)
+                return newDemoUser
+            }
+            // Si ya existe y la contraseña coincide (lo cual ya verificamos), devolverlo
+            return demoUser
+        }
+
+        // 3. Si las credenciales no son válidas
         return null
     }
 
