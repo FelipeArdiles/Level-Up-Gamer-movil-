@@ -9,6 +9,7 @@ import com.example.level_up_gamer.ui.screens.RegistrationScreen
 import com.example.level_up_gamer.ui.screens.CartScreen
 import com.example.level_up_gamer.ui.screens.EditProfileScreen
 import com.example.level_up_gamer.ui.screens.ProductFormScreen
+import com.example.level_up_gamer.ui.screens.GameSuggestionsScreen
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
@@ -29,6 +30,7 @@ sealed class Screen(val route: String) {
     object EditProduct : Screen("edit_product_screen/{productId}") {
         fun buildRoute(productId: Int) = "edit_product_screen/$productId"
     }
+    object GameSuggestions : Screen("game_suggestions_screen")
 }
 
 @Composable
@@ -96,6 +98,10 @@ fun AppNavigation() {
                 productId = productId,
                 productViewModel = productViewModel
             )
+        }
+
+        composable(Screen.GameSuggestions.route) {
+            GameSuggestionsScreen(navController = navController)
         }
     }
 }

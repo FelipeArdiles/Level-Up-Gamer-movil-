@@ -1,19 +1,51 @@
 package com.example.level_up_gamer.ui.screens
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material3.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -23,6 +55,7 @@ import androidx.navigation.NavController
 import com.example.level_up_gamer.R
 import com.example.level_up_gamer.data.CartItemWithProduct
 import com.example.level_up_gamer.ui.navigation.Screen
+import com.example.level_up_gamer.ui.theme.rememberNeonBackgroundBrush
 import com.example.level_up_gamer.viewmodel.ProductViewModel
 import java.text.NumberFormat
 import java.util.Currency
@@ -45,155 +78,192 @@ fun CartScreen(
     }
     
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        IconButton(
-                            onClick = { 
-                                navController.navigate(Screen.ProductMenu.route) {
-                                    popUpTo(Screen.ProductMenu.route) { inclusive = false }
-                                }
-                            },
-                            modifier = Modifier.size(32.dp)
-                        ) {
-                            Image(
-                                painter = painterResource(id = R.drawable.level_up_logo),
-                                contentDescription = "Logo",
-                                modifier = Modifier.size(32.dp)
-                            )
-                        }
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Carrito de Compras")
-                    }
-                },
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
-                    }
-                }
-            )
-        },
-        bottomBar = {
-            if (cartItems.isNotEmpty()) {
-                val total = cartItems.sumOf { it.product.price * it.cartItem.quantity }
-                val eurToClp = 1000.0
-                val clpTotal = total * eurToClp
-                val clpFormat = NumberFormat.getCurrencyInstance(Locale("es", "CL")).apply {
-                    currency = Currency.getInstance("CLP")
-                    maximumFractionDigits = 0
-                }
+    val backgroundBrush = rememberNeonBackgroundBrush()
 
-                Surface(
-                    modifier = Modifier.fillMaxWidth(),
-                    tonalElevation = 8.dp
-                ) {
-                    Column(
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(backgroundBrush)
+    ) {
+        Scaffold(
+            containerColor = Color.Transparent,
+            topBar = {
+                TopAppBar(
+                    title = {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            IconButton(
+                                onClick = {
+                                    navController.navigate(Screen.ProductMenu.route) {
+                                        popUpTo(Screen.ProductMenu.route) { inclusive = false }
+                                    }
+                                },
+                                modifier = Modifier.size(32.dp)
+                            ) {
+                                Image(
+                                    painter = painterResource(id = R.drawable.level_up_logo),
+                                    contentDescription = "Logo",
+                                    modifier = Modifier.size(32.dp)
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Carrito de Compras")
+                        }
+                    },
+                    navigationIcon = {
+                        IconButton(onClick = { navController.popBackStack() }) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = Color.Transparent,
+                        titleContentColor = MaterialTheme.colorScheme.onSurface
+                    )
+                )
+            },
+            bottomBar = {
+                if (cartItems.isNotEmpty()) {
+                    val total = cartItems.sumOf { it.product.price * it.cartItem.quantity }
+                    val eurToClp = 1000.0
+                    val clpTotal = total * eurToClp
+                    val clpFormat = NumberFormat.getCurrencyInstance(Locale("es", "CL")).apply {
+                        currency = Currency.getInstance("CLP")
+                        maximumFractionDigits = 0
+                    }
+
+                    Surface(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(16.dp)
+                            .border(
+                                BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)),
+                                shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
+                            ),
+                        tonalElevation = 8.dp,
+                        shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
+                        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f)
                     ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp)
                         ) {
-                            Text(
-                                "Total:",
-                                style = MaterialTheme.typography.titleLarge,
-                                fontWeight = FontWeight.Bold
-                            )
-                            Text(
-                                clpFormat.format(clpTotal),
-                                style = MaterialTheme.typography.titleLarge,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.primary
-                            )
-                        }
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Button(
-                            onClick = { productViewModel.checkout() },
-                            modifier = Modifier.fillMaxWidth(),
-                            enabled = !uiState.isLoading
-                        ) {
-                            if (uiState.isLoading) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(24.dp),
-                                    color = MaterialTheme.colorScheme.onPrimary
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text(
+                                    "Total:",
+                                    style = MaterialTheme.typography.titleLarge,
+                                    fontWeight = FontWeight.Bold
                                 )
-                            } else {
-                                Text("Realizar Compra")
+                                Text(
+                                    clpFormat.format(clpTotal),
+                                    style = MaterialTheme.typography.titleLarge,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Button(
+                                onClick = { productViewModel.checkout() },
+                                modifier = Modifier.fillMaxWidth(),
+                                enabled = !uiState.isLoading
+                            ) {
+                                if (uiState.isLoading) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(24.dp),
+                                        color = MaterialTheme.colorScheme.onPrimary
+                                    )
+                                } else {
+                                    Text("Realizar Compra")
+                                }
                             }
                         }
                     }
                 }
             }
-        }
-    ) { paddingValues ->
-        LazyColumn(
-            contentPadding = paddingValues,
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            if (cartItems.isEmpty()) {
-                item {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(32.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text("El carrito está vacío")
-                    }
-                }
-            } else {
-                uiState.errorMessage?.let { error ->
+        ) { paddingValues ->
+            LazyColumn(
+                contentPadding = paddingValues,
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 12.dp)
+            ) {
+                if (cartItems.isEmpty()) {
                     item {
-                        Card(
+                        Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(16.dp),
-                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer)
+                                .padding(32.dp),
+                            contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                text = error,
-                                modifier = Modifier.padding(16.dp),
-                                color = MaterialTheme.colorScheme.onErrorContainer
+                                "El carrito está vacío",
+                                color = MaterialTheme.colorScheme.onBackground
                             )
                         }
                     }
-                }
-                uiState.successMessage?.let { success ->
-                    item {
-                        Card(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp),
-                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
-                        ) {
-                            Text(
-                                text = success,
-                                modifier = Modifier.padding(16.dp),
-                                color = MaterialTheme.colorScheme.onPrimaryContainer
-                            )
+                } else {
+                    uiState.errorMessage?.let { error ->
+                        item {
+                            AnimatedVisibility(
+                                visible = true,
+                                enter = fadeIn() + expandVertically(),
+                                exit = fadeOut() + shrinkVertically()
+                            ) {
+                                Card(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(16.dp),
+                                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer)
+                                ) {
+                                    Text(
+                                        text = error,
+                                        modifier = Modifier.padding(16.dp),
+                                        color = MaterialTheme.colorScheme.onErrorContainer
+                                    )
+                                }
+                            }
                         }
                     }
-                }
-                items(cartItems) { item ->
-                    CartItemCard(
-                        item = item,
-                        onQuantityChange = { newQuantity ->
-                            productViewModel.updateCartQuantity(item.cartItem.id, newQuantity)
-                        },
-                        onRemove = {
-                            productViewModel.removeFromCart(item.cartItem.id)
+                    uiState.successMessage?.let { success ->
+                        item {
+                            AnimatedVisibility(
+                                visible = true,
+                                enter = fadeIn() + expandVertically(),
+                                exit = fadeOut() + shrinkVertically()
+                            ) {
+                                Card(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(16.dp),
+                                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+                                ) {
+                                    Text(
+                                        text = success,
+                                        modifier = Modifier.padding(16.dp),
+                                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                                    )
+                                }
+                            }
                         }
-                    )
+                    }
+                    items(cartItems) { item ->
+                        CartItemCard(
+                            item = item,
+                            onQuantityChange = { newQuantity ->
+                                productViewModel.updateCartQuantity(item.cartItem.id, newQuantity)
+                            },
+                            onRemove = {
+                                productViewModel.removeFromCart(item.cartItem.id)
+                            }
+                        )
+                    }
                 }
             }
         }
     }
 }
-
 @Composable
 fun CartItemCard(
     item: CartItemWithProduct,
@@ -210,8 +280,12 @@ fun CartItemCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 4.dp),
-        elevation = CardDefaults.cardElevation(2.dp)
+            .padding(horizontal = 8.dp, vertical = 4.dp),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f)
+        ),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f))
     ) {
         Row(
             modifier = Modifier
@@ -286,4 +360,3 @@ fun CartItemCard(
         }
     }
 }
-
