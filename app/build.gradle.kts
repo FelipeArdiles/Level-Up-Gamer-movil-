@@ -40,6 +40,27 @@ android {
     }
     testOptions {
         animationsDisabled = true
+        unitTests {
+            isReturnDefaultValues = true
+            // Configurar para usar JUnit5 Platform
+            all {
+                it.useJUnitPlatform()
+            }
+        }
+    }
+    packaging {
+        resources {
+            // Excluir archivos duplicados META-INF que causan conflictos
+            excludes += "/META-INF/LICENSE.md"
+            excludes += "/META-INF/LICENSE.txt"
+            excludes += "/META-INF/LICENSE-notice.md"
+            excludes += "/META-INF/NOTICE.md"
+            excludes += "/META-INF/NOTICE.txt"
+            excludes += "/META-INF/AL2.0"
+            excludes += "/META-INF/LGPL2.1"
+            excludes += "/META-INF/DEPENDENCIES"
+            excludes += "/META-INF/*.kotlin_module"
+        }
     }
 }
 
@@ -53,11 +74,37 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    // Pruebas unitarias (test)
     testImplementation(libs.junit)
+    // JUnit5 para tests de UI con ComposeTestRule
+    testImplementation("org.junit.jupiter:junit-jupiter:5.10.0")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.10.0")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.10.0")
+    // Kotest para lógica de negocio
+    testImplementation("io.kotest:kotest-runner-junit5:5.8.0")
+    testImplementation("io.kotest:kotest-assertions-core:5.8.0")
+    testImplementation("io.kotest:kotest-property:5.8.0")
+    // MockK para testear sin dependencias reales
+    testImplementation("io.mockk:mockk:1.13.8")
+    // coroutines-test para simular asincronía
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
+    testImplementation("androidx.arch.core:core-testing:2.2.0")
+    
+    // Pruebas de instrumentación (androidTest)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation("androidx.compose.ui:ui-test-junit4:1.7.0")
+    // JUnit5 para tests de UI con ComposeTestRule en Android
+    androidTestImplementation("org.junit.jupiter:junit-jupiter:5.10.0")
+    androidTestImplementation("org.junit.jupiter:junit-jupiter-api:5.10.0")
+    androidTestRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.10.0")
+    // MockK para Android
+    androidTestImplementation("io.mockk:mockk-android:1.13.8")
+    // coroutines-test para Android
+    androidTestImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
+    androidTestImplementation("androidx.arch.core:core-testing:2.2.0")
+    
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation("androidx.compose.ui:ui-test-manifest:1.7.0")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.3")
