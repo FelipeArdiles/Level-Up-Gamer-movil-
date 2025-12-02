@@ -5,6 +5,7 @@ package com.example.level_up_gamer.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.level_up_gamer.repository.AuthRepository
+import com.example.level_up_gamer.data.SessionManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -53,7 +54,8 @@ class AuthViewModel(
             )
 
             _uiState.value = if (user != null) {
-                // Éxito
+                // Éxito: Guardar la sesión del usuario
+                SessionManager.setCurrentUserId(user.id)
                 _uiState.value.copy(isAuthenticated = true, isLoading = false)
             } else {
                 // Fallo

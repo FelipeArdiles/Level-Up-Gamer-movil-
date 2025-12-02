@@ -3,6 +3,7 @@ package com.example.level_up_gamer.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.level_up_gamer.repository.AuthRepository
+import com.example.level_up_gamer.data.SessionManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -45,7 +46,11 @@ class RegistrationViewModel(
         viewModelScope.launch {
             val result = repository.register(state.username, state.email, state.password)
             _uiState.value = result.fold(
-                onSuccess = { state.copy(isLoading = false, success = true) },
+                onSuccess = { user ->
+                    // Guardar la sesión del usuario recién registrado
+                    SessionManager.setCurrentUserId(user.id)
+                    state.copy(isLoading = false, success = true)
+                },
                 onFailure = { state.copy(isLoading = false, errorMessage = it.message ?: "Error al registrar") }
             )
         }

@@ -32,6 +32,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -55,6 +56,11 @@ fun ProfileScreen(
 ) {
     val user by userViewModel.userProfile.collectAsState()
     val backgroundBrush = rememberNeonBackgroundBrush()
+
+    // Refrescar el perfil cuando se carga la pantalla para asegurar que se muestre el usuario correcto
+    LaunchedEffect(Unit) {
+        userViewModel.refreshProfile()
+    }
 
     Box(
         modifier = Modifier
@@ -161,6 +167,7 @@ fun ProfileScreen(
 
                     Button(
                         onClick = {
+                            com.example.level_up_gamer.data.SessionManager.logout()
                             navController.navigate(Screen.Login.route) {
                                 popUpTo(0)
                             }
