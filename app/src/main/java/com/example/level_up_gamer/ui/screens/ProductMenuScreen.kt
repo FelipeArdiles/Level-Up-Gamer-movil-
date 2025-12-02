@@ -21,6 +21,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Public
 import androidx.compose.material.icons.filled.ShoppingCart
@@ -132,6 +133,14 @@ fun ProductMenuScreen(
                             }
                         },
                         actions = {
+                            // Botón del mapa (arriba en la navegación)
+                            IconButton(onClick = { navController.navigate(Screen.StoresMap.route) }) {
+                                Icon(
+                                    Icons.Default.LocationOn,
+                                    contentDescription = "Mapa de Tiendas",
+                                    tint = MaterialTheme.colorScheme.onSurface
+                                )
+                            }
                             IconButton(onClick = { navController.navigate(Screen.GameSuggestions.route) }) {
                                 Icon(
                                     Icons.Default.Public,

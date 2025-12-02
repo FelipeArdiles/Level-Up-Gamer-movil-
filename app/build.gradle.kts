@@ -11,7 +11,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.level_up_gamer"
-        minSdk = 24
+        minSdk = 24  // Mapbox requiere minSdk 21, ya tenemos 24 ✓
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
@@ -78,4 +78,8 @@ dependencies {
     
     // Permisos para cámara
     implementation("com.google.accompanist:accompanist-permissions:0.34.0")
+    
+    // Mapbox Maps SDK
+    implementation("com.mapbox.maps:android:11.16.6")
+    implementation("com.mapbox.extension:maps-compose:11.16.6")
 }
