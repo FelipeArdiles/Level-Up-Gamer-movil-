@@ -46,17 +46,22 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.level_up_gamer.R
+import com.example.level_up_gamer.utils.AdminUtils
 import com.example.level_up_gamer.viewmodel.ProductViewModel
+import com.example.level_up_gamer.viewmodel.UserViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProductFormScreen(
     navController: NavController,
     productId: Int? = null,
-    productViewModel: ProductViewModel = viewModel()
+    productViewModel: ProductViewModel = viewModel(),
+    userViewModel: UserViewModel = viewModel()
 ) {
     val products by productViewModel.products.collectAsState()
     val uiState by productViewModel.uiState.collectAsState()
+    val currentUser by userViewModel.userProfile.collectAsState()
+    val isAdmin = AdminUtils.isAdmin(currentUser)
     val snackbarHostState = remember { SnackbarHostState() }
 
     val currentProduct = products.firstOrNull { it.id == productId }
@@ -98,6 +103,44 @@ fun ProductFormScreen(
             snackbarHostState.showSnackbar(message)
             productViewModel.clearMessages()
         }
+    }
+
+    // Verificar permisos de administrador
+    LaunchedEffect(isAdmin) {
+        if (!isAdmin) {
+            snackbarHostState.showSnackbar("Solo los administradores pueden modificar productos")
+            navController.popBackStack()
+        }
+    }
+
+    if (!isAdmin) {
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = { Text("Acceso denegado") },
+                    navigationIcon = {
+                        IconButton(onClick = { navController.popBackStack() }) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
+                        }
+                    }
+                )
+            }
+        ) { paddingValues ->
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+                    .padding(24.dp),
+                horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    "Solo los administradores pueden modificar productos",
+                    style = androidx.compose.material3.MaterialTheme.typography.bodyLarge
+                )
+            }
+        }
+        return
     }
 
     Scaffold(
@@ -162,7 +205,8 @@ fun ProductFormScreen(
                 onValueChange = { stockInput = it.filter { char -> char.isDigit() } },
                 label = { Text("Stock disponible") },
                 modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                enabled = isAdmin
             )
 
             ExposedDropdownMenuBox(

@@ -66,7 +66,9 @@ import com.example.level_up_gamer.R
 import com.example.level_up_gamer.model.Product
 import com.example.level_up_gamer.ui.navigation.Screen
 import com.example.level_up_gamer.ui.theme.rememberNeonBackgroundBrush
+import com.example.level_up_gamer.utils.AdminUtils
 import com.example.level_up_gamer.viewmodel.ProductViewModel
+import com.example.level_up_gamer.viewmodel.UserViewModel
 import java.text.NumberFormat
 import java.util.Currency
 import java.util.Locale
@@ -75,11 +77,14 @@ import java.util.Locale
 @Composable
 fun ProductMenuScreen(
     navController: NavController,
-    productViewModel: ProductViewModel
+    productViewModel: ProductViewModel,
+    userViewModel: UserViewModel = viewModel()
 ) {
     val products by productViewModel.products.collectAsState()
     val cartItemCount by productViewModel.cartItemCount.collectAsState()
     val uiState by productViewModel.uiState.collectAsState()
+    val currentUser by userViewModel.userProfile.collectAsState()
+    val isAdmin = AdminUtils.isAdmin(currentUser)
     val backgroundBrush = rememberNeonBackgroundBrush()
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -168,12 +173,14 @@ fun ProductMenuScreen(
                 }
             },
             floatingActionButton = {
-                FloatingActionButton(
-                    onClick = { navController.navigate(Screen.AddProduct.route) },
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary
-                ) {
-                    Icon(Icons.Default.Add, contentDescription = "Agregar producto")
+                if (isAdmin) {
+                    FloatingActionButton(
+                        onClick = { navController.navigate(Screen.AddProduct.route) },
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary
+                    ) {
+                        Icon(Icons.Default.Add, contentDescription = "Agregar producto")
+                    }
                 }
             },
             snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
@@ -262,7 +269,8 @@ fun ProductMenuScreen(
                             onAddToCart = { productViewModel.addToCart(product.id) },
                             onEditProduct = {
                                 navController.navigate(Screen.EditProduct.buildRoute(product.id))
-                            }
+                            },
+                            canEdit = isAdmin
                         )
                     }
                 }
@@ -275,7 +283,8 @@ fun ProductMenuScreen(
 fun ProductCard(
     product: Product,
     onAddToCart: () -> Unit,
-    onEditProduct: () -> Unit
+    onEditProduct: () -> Unit,
+    canEdit: Boolean = false
 ) {
     val stockColor = when {
         product.stock > 10 -> Color.Green
@@ -388,13 +397,15 @@ fun ProductCard(
                     Spacer(modifier = Modifier.width(4.dp))
                     Text("Al carrito")
                 }
-                OutlinedButton(
-                    onClick = onEditProduct,
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(18.dp))
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text("Editar")
+                if (canEdit) {
+                    OutlinedButton(
+                        onClick = onEditProduct,
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text("Editar")
+                    }
                 }
             }
         }

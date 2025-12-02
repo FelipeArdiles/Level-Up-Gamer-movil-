@@ -12,5 +12,6 @@ data class User(
     @PrimaryKey val id: String,
     val username: String,
     val email: String,
-    val password: String
+    val password: String,
+    val avatarIconId: Int = 0 // ID del icono de avatar (0 = por defecto)
 )

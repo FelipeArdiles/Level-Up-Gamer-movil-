@@ -46,6 +46,7 @@ import androidx.navigation.NavController
 import com.example.level_up_gamer.R
 import com.example.level_up_gamer.ui.navigation.Screen
 import com.example.level_up_gamer.ui.theme.rememberNeonBackgroundBrush
+import com.example.level_up_gamer.utils.AvatarIcons
 import com.example.level_up_gamer.viewmodel.UserViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -126,7 +127,10 @@ fun ProfileScreen(
                     )
                 } else {
                     val currentUser = user!!
-                    ProfileHeader(currentUser.username)
+                    ProfileHeader(
+                        username = currentUser.username,
+                        avatarIconId = currentUser.avatarIconId
+                    )
                     Spacer(modifier = Modifier.height(32.dp))
 
                     Card(
@@ -151,7 +155,10 @@ fun ProfileScreen(
                                 modifier = Modifier.padding(vertical = 8.dp),
                                 color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
                             )
-                            ProfileInfoItem(label = "ID de Jugador:", value = currentUser.id)
+                            ProfileInfoItem(
+                                label = "ID de Jugador:", 
+                                value = formatUserId(currentUser.id)
+                            )
                         }
                     }
                     Spacer(modifier = Modifier.height(32.dp))
@@ -183,9 +190,9 @@ fun ProfileScreen(
 }
 
 @Composable
-fun ProfileHeader(username: String) {
+fun ProfileHeader(username: String, avatarIconId: Int = 0) {
     Icon(
-        imageVector = Icons.Filled.Person,
+        imageVector = AvatarIcons.getIconById(avatarIconId),
         contentDescription = "Icono de Perfil",
         modifier = Modifier.size(80.dp),
         tint = MaterialTheme.colorScheme.primary
@@ -196,6 +203,18 @@ fun ProfileHeader(username: String) {
         style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
         color = MaterialTheme.colorScheme.onBackground
     )
+}
+
+/**
+ * Formatea el ID del usuario para mostrarlo de manera más legible.
+ * Muestra los primeros 8 caracteres seguidos de "..."
+ */
+private fun formatUserId(userId: String): String {
+    return if (userId.length > 12) {
+        "${userId.take(8)}...${userId.takeLast(4)}"
+    } else {
+        userId
+    }
 }
 
 @Composable

@@ -54,7 +54,7 @@ class UserViewModel : ViewModel() {
         currentUserIdFlow.value = SessionManager.getCurrentUserId()
     }
 
-    fun updateProfile(username: String, email: String, password: String?) {
+    fun updateProfile(username: String, email: String, password: String?, avatarIconId: Int? = null) {
         viewModelScope.launch {
             val currentUser = userProfile.value
             if (currentUser == null) {
@@ -65,10 +65,12 @@ class UserViewModel : ViewModel() {
             try {
                 _uiState.value = UserUiState(isSaving = true)
                 val newPassword = password?.takeIf { it.isNotBlank() } ?: currentUser.password
+                val newAvatarIconId = avatarIconId ?: currentUser.avatarIconId
                 val updatedUser = currentUser.copy(
                     username = username,
                     email = email,
-                    password = newPassword
+                    password = newPassword,
+                    avatarIconId = newAvatarIconId
                 )
                 DatabaseProvider.db().userDao().insert(updatedUser)
                 // El Flow se actualizará automáticamente cuando se actualice la base de datos

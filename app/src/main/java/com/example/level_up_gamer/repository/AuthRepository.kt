@@ -40,7 +40,8 @@ class AuthRepository {
                     id = "user123",
                     username = "Juan Gamer",
                     email = VALID_EMAIL,
-                    password = VALID_PASSWORD
+                    password = VALID_PASSWORD,
+                    avatarIconId = 0 // Icono por defecto
                 )
                 dao.insert(newDemoUser)
                 return newDemoUser
@@ -64,7 +65,8 @@ class AuthRepository {
                 id = java.util.UUID.randomUUID().toString(),
                 username = username,
                 email = email,
-                password = password
+                password = password,
+                avatarIconId = 0 // Icono por defecto
             )
             dao.insert(newUser)
             Result.success(newUser)
