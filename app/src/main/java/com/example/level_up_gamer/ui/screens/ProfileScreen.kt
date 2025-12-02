@@ -1,8 +1,15 @@
 package com.example.level_up_gamer.ui.screens
 
+import android.Manifest
+import android.graphics.Bitmap
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,11 +18,15 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -28,6 +39,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -35,32 +48,119 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.level_up_gamer.R
 import com.example.level_up_gamer.ui.navigation.Screen
 import com.example.level_up_gamer.ui.theme.rememberNeonBackgroundBrush
-import com.example.level_up_gamer.utils.AvatarIcons
+import com.example.level_up_gamer.utils.ProfileImageManager
 import com.example.level_up_gamer.viewmodel.UserViewModel
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
+import com.google.accompanist.permissions.shouldShowRationale
+import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 @Composable
 fun ProfileScreen(
     navController: NavController,
     userViewModel: UserViewModel = viewModel()
 ) {
     val user by userViewModel.userProfile.collectAsState()
+    val uiState by userViewModel.uiState.collectAsState()
     val backgroundBrush = rememberNeonBackgroundBrush()
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
+    
+    var profileBitmap by remember { mutableStateOf<Bitmap?>(null) }
+    var imageUri by remember { mutableStateOf<Uri?>(null) }
+    
+    // Permiso de cámara
+    val cameraPermissionState = rememberPermissionState(Manifest.permission.CAMERA)
 
     // Refrescar el perfil cuando se carga la pantalla para asegurar que se muestre el usuario correcto
     LaunchedEffect(Unit) {
         userViewModel.refreshProfile()
+    }
+    
+    // Cargar imagen de perfil cuando el usuario cambia
+    LaunchedEffect(user?.profileImagePath) {
+        user?.let { currentUser ->
+            if (!currentUser.profileImagePath.isNullOrBlank()) {
+                profileBitmap = ProfileImageManager.loadProfileImage(context, currentUser.profileImagePath)
+            } else {
+                profileBitmap = null
+            }
+        }
+    }
+    
+    // Manejar mensajes del ViewModel
+    LaunchedEffect(uiState.successMessage) {
+        uiState.successMessage?.let { message ->
+            snackbarHostState.showSnackbar(message)
+            userViewModel.clearMessages()
+        }
+    }
+    
+    LaunchedEffect(uiState.errorMessage) {
+        uiState.errorMessage?.let { message ->
+            snackbarHostState.showSnackbar(message)
+            userViewModel.clearMessages()
+        }
+    }
+    
+    // Launcher para tomar foto
+    val takePictureLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicture()
+    ) { success ->
+        if (success && imageUri != null) {
+            user?.let { currentUser ->
+                scope.launch {
+                    val imagePath = ProfileImageManager.saveProfileImageFromUri(
+                        context,
+                        currentUser.id,
+                        imageUri!!
+                    )
+                    if (imagePath != null) {
+                        userViewModel.updateProfileImage(imagePath)
+                        profileBitmap = ProfileImageManager.loadProfileImage(context, imagePath)
+                    } else {
+                        snackbarHostState.showSnackbar("Error al guardar la imagen")
+                    }
+                }
+            }
+        }
+    }
+    
+    // Función para tomar foto
+    fun takePicture() {
+        user?.let { currentUser ->
+            val uri = ProfileImageManager.createImageUri(context, currentUser.id)
+            if (uri != null) {
+                imageUri = uri
+                takePictureLauncher.launch(uri)
+            } else {
+                scope.launch {
+                    snackbarHostState.showSnackbar("Error al crear el archivo de imagen")
+                }
+            }
+        }
     }
 
     Box(
@@ -115,7 +215,8 @@ fun ProfileScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(paddingValues)
-                    .padding(24.dp),
+                    .padding(24.dp)
+                    .verticalScroll(rememberScrollState()),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Top
             ) {
@@ -129,7 +230,19 @@ fun ProfileScreen(
                     val currentUser = user!!
                     ProfileHeader(
                         username = currentUser.username,
-                        avatarIconId = currentUser.avatarIconId
+                        profileBitmap = profileBitmap,
+                        onTakePictureClick = {
+                            if (cameraPermissionState.status.isGranted) {
+                                takePicture()
+                            } else if (cameraPermissionState.status.shouldShowRationale) {
+                                scope.launch {
+                                    snackbarHostState.showSnackbar("Se necesita permiso de cámara para tomar fotos")
+                                }
+                                cameraPermissionState.launchPermissionRequest()
+                            } else {
+                                cameraPermissionState.launchPermissionRequest()
+                            }
+                        }
                     )
                     Spacer(modifier = Modifier.height(32.dp))
 
@@ -186,32 +299,89 @@ fun ProfileScreen(
                 }
             }
         }
+        
+        // Snackbar para mostrar mensajes
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier.align(Alignment.BottomCenter)
+        )
     }
 }
 
 @Composable
-fun ProfileHeader(username: String, avatarIconId: Int = 0) {
-    Icon(
-        imageVector = AvatarIcons.getIconById(avatarIconId),
-        contentDescription = "Icono de Perfil",
-        modifier = Modifier.size(80.dp),
-        tint = MaterialTheme.colorScheme.primary
-    )
-    Spacer(modifier = Modifier.height(8.dp))
-    Text(
-        text = "¡Hola, $username!",
-        style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
-        color = MaterialTheme.colorScheme.onBackground
-    )
+fun ProfileHeader(
+    username: String,
+    profileBitmap: Bitmap?,
+    onTakePictureClick: () -> Unit
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Box {
+            if (profileBitmap != null) {
+                Image(
+                    bitmap = profileBitmap.asImageBitmap(),
+                    contentDescription = "Foto de Perfil",
+                    modifier = Modifier
+                        .size(120.dp)
+                        .clip(CircleShape)
+                        .border(3.dp, MaterialTheme.colorScheme.primary, CircleShape)
+                )
+            } else {
+                Icon(
+                    imageVector = Icons.Filled.Person,
+                    contentDescription = "Icono de Perfil",
+                    modifier = Modifier
+                        .size(120.dp)
+                        .clip(CircleShape)
+                        .border(3.dp, MaterialTheme.colorScheme.primary, CircleShape)
+                        .padding(20.dp),
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
+            
+            // Botón de cámara flotante
+            IconButton(
+                onClick = onTakePictureClick,
+                modifier = Modifier
+                    .size(40.dp)
+                    .offset(x = 40.dp, y = 80.dp)
+                    .background(
+                        MaterialTheme.colorScheme.primary,
+                        CircleShape
+                    )
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.CameraAlt,
+                    contentDescription = "Tomar Foto",
+                    tint = Color.White,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+        }
+        
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = "¡Hola, $username!",
+            style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
+            color = MaterialTheme.colorScheme.onBackground
+        )
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            text = "Toca el ícono de cámara para cambiar tu foto",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
 }
 
 /**
- * Formatea el ID del usuario para mostrarlo de manera más legible.
- * Muestra los primeros 8 caracteres seguidos de "..."
+ * Formatea el ID del usuario para mostrarlo de forma más legible.
+ * Si es un UUID, muestra solo los primeros 8 caracteres seguidos de "..."
  */
-private fun formatUserId(userId: String): String {
+fun formatUserId(userId: String): String {
     return if (userId.length > 12) {
-        "${userId.take(8)}...${userId.takeLast(4)}"
+        "${userId.take(8)}..."
     } else {
         userId
     }
@@ -221,7 +391,8 @@ private fun formatUserId(userId: String): String {
 fun ProfileInfoItem(label: String, value: String) {
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
             text = label,
@@ -233,7 +404,11 @@ fun ProfileInfoItem(label: String, value: String) {
             text = value,
             style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold),
             color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.padding(start = 16.dp)
+            modifier = Modifier
+                .weight(1f)
+                .padding(start = 16.dp),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
         )
     }
 }

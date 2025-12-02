@@ -83,6 +83,28 @@ class UserViewModel : ViewModel() {
         }
     }
 
+    fun updateProfileImage(profileImagePath: String?) {
+        viewModelScope.launch {
+            val currentUser = userProfile.value
+            if (currentUser == null) {
+                _uiState.value = UserUiState(errorMessage = "No se encontró un perfil para editar")
+                return@launch
+            }
+
+            try {
+                _uiState.value = UserUiState(isSaving = true)
+                val updatedUser = currentUser.copy(profileImagePath = profileImagePath)
+                DatabaseProvider.db().userDao().insert(updatedUser)
+                // El Flow se actualizará automáticamente cuando se actualice la base de datos
+                _uiState.value = UserUiState(successMessage = "Imagen de perfil actualizada")
+            } catch (e: Exception) {
+                _uiState.value = UserUiState(
+                    errorMessage = "No se pudo actualizar la imagen de perfil: ${e.message}"
+                )
+            }
+        }
+    }
+
     fun clearMessages() {
         _uiState.value = UserUiState()
     }

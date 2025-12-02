@@ -13,5 +13,6 @@ data class User(
     val username: String,
     val email: String,
     val password: String,
-    val avatarIconId: Int = 0 // ID del icono de avatar (0 = por defecto)
+    val avatarIconId: Int = 0, // ID del icono de avatar (0 = por defecto)
+    val profileImagePath: String? = null // Ruta de la imagen de perfil desde la cámara
 )
