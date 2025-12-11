@@ -154,70 +154,14 @@ fun ProductMenuScreen(
                 ) {
                     TopAppBar(
                         title = {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.padding(vertical = 8.dp)
+                            Box(
+                                modifier = Modifier.fillMaxWidth(),
+                                contentAlignment = Alignment.Center
                             ) {
                                 Image(
                                     painter = painterResource(id = R.drawable.level_up_logo),
                                     contentDescription = "Logo Level Up Gamer",
                                     modifier = Modifier.size(48.dp)
-                                )
-                                Spacer(modifier = Modifier.width(12.dp))
-                                Column {
-                                    Text(
-                                        text = "Level Up Gamer",
-                                        style = MaterialTheme.typography.titleMedium,
-                                        color = MaterialTheme.colorScheme.primary,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                    Text(
-                                        text = "Menú de Productos",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurface
-                                    )
-                                }
-                            }
-                        },
-                        actions = {
-                            // Botón del mapa (arriba en la navegación)
-                            IconButton(onClick = { navController.navigate(Screen.StoresMap.route) }) {
-                                Icon(
-                                    Icons.Default.LocationOn,
-                                    contentDescription = "Mapa de Tiendas",
-                                    tint = MaterialTheme.colorScheme.onSurface
-                                )
-                            }
-                            IconButton(onClick = { navController.navigate(Screen.GameSuggestions.route) }) {
-                                Icon(
-                                    Icons.Default.Public,
-                                    contentDescription = "Recomendaciones online",
-                                    tint = MaterialTheme.colorScheme.onSurface
-                                )
-                            }
-                            IconButton(onClick = { navController.navigate(Screen.Cart.route) }) {
-                                val count = cartItemCount
-                                if (count > 0) {
-                                    BadgedBox(badge = { Badge { Text(count.toString()) } }) {
-                                        Icon(
-                                            Icons.Default.ShoppingCart,
-                                            contentDescription = "Carrito",
-                                            tint = MaterialTheme.colorScheme.onSurface
-                                        )
-                                    }
-                                } else {
-                                    Icon(
-                                        Icons.Default.ShoppingCart,
-                                        contentDescription = "Carrito",
-                                        tint = MaterialTheme.colorScheme.onSurface
-                                    )
-                                }
-                            }
-                            IconButton(onClick = { navController.navigate(Screen.UserProfile.route) }) {
-                                Icon(
-                                    Icons.Default.Person,
-                                    contentDescription = "Perfil",
-                                    tint = MaterialTheme.colorScheme.onSurface
                                 )
                             }
                         },

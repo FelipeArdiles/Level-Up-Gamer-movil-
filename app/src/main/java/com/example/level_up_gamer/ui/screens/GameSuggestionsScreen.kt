@@ -85,34 +85,15 @@ fun GameSuggestionsScreen(
             topBar = {
                 TopAppBar(
                     title = {
-                        Column {
+                        Box(
+                            modifier = Modifier.fillMaxWidth(),
+                            contentAlignment = Alignment.Center
+                        ) {
                             Text(
-                                "Recomendaciones de los jugadores",
-                                color = MaterialTheme.colorScheme.onSurface,
-                                style = MaterialTheme.typography.titleMedium
-                            )
-                            Text(
-                                "Juegos gratuitos recomendados",
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                style = MaterialTheme.typography.bodySmall
-                            )
-                        }
-                    },
-                    navigationIcon = {
-                        IconButton(onClick = { navController.popBackStack() }) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = "Volver",
-                                tint = MaterialTheme.colorScheme.onSurface
-                            )
-                        }
-                    },
-                    actions = {
-                        IconButton(onClick = { remoteGameViewModel.refresh() }) {
-                            Icon(
-                                Icons.Filled.Refresh,
-                                contentDescription = "Actualizar",
-                                tint = MaterialTheme.colorScheme.onSurface
+                                text = "Level Up Gamer",
+                                style = MaterialTheme.typography.titleLarge,
+                                color = MaterialTheme.colorScheme.primary,
+                                fontWeight = FontWeight.Bold
                             )
                         }
                     },

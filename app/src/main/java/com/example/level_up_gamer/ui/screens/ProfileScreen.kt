@@ -202,34 +202,15 @@ fun ProfileScreen(
             topBar = {
                 TopAppBar(
                     title = {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            IconButton(
-                                onClick = {
-                                    navController.navigate(Screen.ProductMenu.route) {
-                                        popUpTo(Screen.ProductMenu.route) { inclusive = false }
-                                    }
-                                },
-                                modifier = Modifier.size(32.dp)
-                            ) {
-                                Image(
-                                    painter = painterResource(id = R.drawable.level_up_logo),
-                                    contentDescription = "Logo Level Up Gamer",
-                                    modifier = Modifier.size(32.dp)
-                                )
-                            }
-                            Spacer(modifier = Modifier.width(8.dp))
+                        Box(
+                            modifier = Modifier.fillMaxWidth(),
+                            contentAlignment = Alignment.Center
+                        ) {
                             Text(
-                                "Mi Perfil de Jugador",
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                        }
-                    },
-                    navigationIcon = {
-                        IconButton(onClick = { navController.popBackStack() }) {
-                            Icon(
-                                Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = "Volver",
-                                tint = MaterialTheme.colorScheme.onSurface
+                                text = "Level Up Gamer",
+                                style = MaterialTheme.typography.titleLarge,
+                                color = MaterialTheme.colorScheme.primary,
+                                fontWeight = FontWeight.Bold
                             )
                         }
                     },

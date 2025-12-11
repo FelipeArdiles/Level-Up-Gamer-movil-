@@ -246,32 +246,16 @@ fun CartScreen(
             topBar = {
                 TopAppBar(
                     title = {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            IconButton(
-                                onClick = {
-                                    // Navegar al menú de productos de forma segura
-                                    navController.navigate(Screen.ProductMenu.route) {
-                                        // Limpiar el back stack desde el carrito
-                                        popUpTo(Screen.Cart.route) { inclusive = true }
-                                        // Evitar múltiples instancias de la misma pantalla
-                                        launchSingleTop = true
-                                    }
-                                },
-                                modifier = Modifier.size(32.dp)
-                            ) {
-                                Image(
-                                    painter = painterResource(id = R.drawable.level_up_logo),
-                                    contentDescription = "Logo",
-                                    modifier = Modifier.size(32.dp)
-                                )
-                            }
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text("Carrito de Compras")
-                        }
-                    },
-                    navigationIcon = {
-                        IconButton(onClick = { navController.popBackStack() }) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
+                        Box(
+                            modifier = Modifier.fillMaxWidth(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "Level Up Gamer",
+                                style = MaterialTheme.typography.titleLarge,
+                                color = MaterialTheme.colorScheme.primary,
+                                fontWeight = FontWeight.Bold
+                            )
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
