@@ -126,6 +126,9 @@ dependencies {
     // Permisos para cámara
     implementation("com.google.accompanist:accompanist-permissions:0.34.0")
     
+    // Coil para cargar imágenes desde archivos
+    implementation("io.coil-kt:coil-compose:2.5.0")
+    
     // Mapbox Maps SDK
     implementation("com.mapbox.maps:android:11.16.6")
     implementation("com.mapbox.extension:maps-compose:11.16.6")

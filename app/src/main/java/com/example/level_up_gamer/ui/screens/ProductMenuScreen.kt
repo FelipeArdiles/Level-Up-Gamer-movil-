@@ -58,16 +58,19 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
 import com.example.level_up_gamer.R
 import com.example.level_up_gamer.model.Product
 import com.example.level_up_gamer.ui.navigation.Screen
 import com.example.level_up_gamer.ui.theme.rememberNeonBackgroundBrush
 import com.example.level_up_gamer.utils.AdminUtils
+import com.example.level_up_gamer.utils.ImageManager
 import com.example.level_up_gamer.viewmodel.ProductViewModel
 import com.example.level_up_gamer.viewmodel.UserViewModel
 import java.text.NumberFormat
@@ -295,6 +298,7 @@ fun ProductCard(
     onEditProduct: () -> Unit,
     canEdit: Boolean = false
 ) {
+    val context = LocalContext.current
     val stockColor = when {
         product.stock > 10 -> Color.Green
         product.stock > 0 -> Color.Yellow
@@ -327,25 +331,51 @@ fun ProductCard(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.Top
             ) {
-                val painter = runCatching { painterResource(id = product.imageResId) }.getOrNull()
-                if (painter != null) {
-                    Image(
-                        painter = painter,
-                        contentDescription = product.name,
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier
-                            .size(100.dp)
-                            .padding(end = 12.dp)
-                    )
+                // Mostrar imagen desde archivo si existe, sino desde recurso
+                if (!product.imagePath.isNullOrBlank()) {
+                    val imageFile = ImageManager.getImageFile(context, product.imagePath)
+                    if (imageFile != null && imageFile.exists()) {
+                        AsyncImage(
+                            model = imageFile,
+                            contentDescription = product.name,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .size(100.dp)
+                                .padding(end = 12.dp)
+                        )
+                    } else {
+                        // Fallback a imagen predefinida si el archivo no existe
+                        Image(
+                            painter = painterResource(id = product.imageResId),
+                            contentDescription = product.name,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .size(100.dp)
+                                .padding(end = 12.dp)
+                        )
+                    }
                 } else {
-                    Image(
-                        painter = painterResource(id = R.drawable.level_up_logo),
-                        contentDescription = "Imagen no disponible",
-                        contentScale = ContentScale.Fit,
-                        modifier = Modifier
-                            .size(100.dp)
-                            .padding(end = 12.dp)
-                    )
+                    // Usar imagen predefinida
+                    val painter = runCatching { painterResource(id = product.imageResId) }.getOrNull()
+                    if (painter != null) {
+                        Image(
+                            painter = painter,
+                            contentDescription = product.name,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .size(100.dp)
+                                .padding(end = 12.dp)
+                        )
+                    } else {
+                        Image(
+                            painter = painterResource(id = R.drawable.level_up_logo),
+                            contentDescription = "Imagen no disponible",
+                            contentScale = ContentScale.Fit,
+                            modifier = Modifier
+                                .size(100.dp)
+                                .padding(end = 12.dp)
+                        )
+                    }
                 }
 
                 Column(

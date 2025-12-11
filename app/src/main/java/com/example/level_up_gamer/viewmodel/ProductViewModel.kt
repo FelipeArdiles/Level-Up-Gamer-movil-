@@ -239,7 +239,8 @@ class ProductViewModel : ViewModel() {
         description: String,
         price: Double,
         stock: Int,
-        imageResId: Int
+        imageResId: Int,
+        imagePath: String? = null
     ) {
         viewModelScope.launch {
             try {
@@ -258,6 +259,7 @@ class ProductViewModel : ViewModel() {
                         price = price,
                         description = description,
                         imageResId = imageResId,
+                        imagePath = imagePath,
                         stock = safeStock
                     )
                 )
@@ -281,7 +283,8 @@ class ProductViewModel : ViewModel() {
         description: String,
         price: Double,
         stock: Int,
-        imageResId: Int
+        imageResId: Int,
+        imagePath: String? = null
     ) {
         viewModelScope.launch {
             try {
@@ -291,6 +294,14 @@ class ProductViewModel : ViewModel() {
                     successMessage = null
                 )
                 val dao = DatabaseProvider.db().productDao()
+                // Si hay una imagen anterior diferente, eliminarla
+                val oldProduct = dao.getById(productId)
+                oldProduct?.imagePath?.let { oldPath ->
+                    if (oldPath != imagePath) {
+                        // La imagen anterior ya no se usa, se puede eliminar
+                        // (opcional: implementar limpieza de imágenes no usadas)
+                    }
+                }
                 dao.insert(
                     Product(
                         id = productId,
@@ -298,6 +309,7 @@ class ProductViewModel : ViewModel() {
                         price = price,
                         description = description,
                         imageResId = imageResId,
+                        imagePath = imagePath,
                         stock = stock.coerceAtLeast(0)
                     )
                 )

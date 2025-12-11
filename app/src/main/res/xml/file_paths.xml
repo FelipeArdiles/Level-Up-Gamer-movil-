@@ -2,5 +2,6 @@
 <paths xmlns:android="http://schemas.android.com/apk/res/android">
     <files-path name="profile_images" path="profile_images/" />
     <cache-path name="profile_images_cache" path="profile_images/" />
+    <files-path name="product_images" path="product_images/" />
 </paths>
 
