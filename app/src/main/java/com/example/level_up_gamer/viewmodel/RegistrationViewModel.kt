@@ -16,6 +16,7 @@ class RegistrationViewModel(
         val username: String = "",
         val email: String = "",
         val password: String = "",
+        val acceptedTerms: Boolean = false,
         val isLoading: Boolean = false,
         val success: Boolean = false,
         val errorMessage: String? = null
@@ -36,10 +37,18 @@ class RegistrationViewModel(
         _uiState.value = _uiState.value.copy(password = value, errorMessage = null)
     }
 
+    fun onAcceptedTermsChange(value: Boolean) {
+        _uiState.value = _uiState.value.copy(acceptedTerms = value, errorMessage = null)
+    }
+
     fun register() {
         val state = _uiState.value
         if (state.username.isBlank() || state.email.isBlank() || state.password.isBlank()) {
             _uiState.value = state.copy(errorMessage = "Completa todos los campos")
+            return
+        }
+        if (!state.acceptedTerms) {
+            _uiState.value = state.copy(errorMessage = "Debes aceptar los términos y condiciones")
             return
         }
         _uiState.value = state.copy(isLoading = true, errorMessage = null)

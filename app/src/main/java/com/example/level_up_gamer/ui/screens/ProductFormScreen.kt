@@ -303,7 +303,7 @@ fun ProductFormScreen(
             OutlinedTextField(
                 value = priceInput,
                 onValueChange = { priceInput = it.filter { char -> char.isDigit() || char == '.' || char == ',' } },
-                label = { Text("Precio (EUR)") },
+                label = { Text("Precio (CLP)") },
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 visualTransformation = VisualTransformation.None
