@@ -65,8 +65,11 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.level_up_gamer.R
+import com.example.level_up_gamer.ui.components.BottomNavigationBar
+import com.example.level_up_gamer.ui.components.getBottomNavItems
 import com.example.level_up_gamer.ui.navigation.Screen
 import com.example.level_up_gamer.ui.theme.rememberNeonBackgroundBrush
+import com.example.level_up_gamer.model.Purchase
 import com.example.level_up_gamer.utils.ProfileImageManager
 import com.example.level_up_gamer.viewmodel.UserViewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
@@ -74,6 +77,11 @@ import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import com.google.accompanist.permissions.shouldShowRationale
 import kotlinx.coroutines.launch
+import java.text.NumberFormat
+import java.text.SimpleDateFormat
+import java.util.Currency
+import java.util.Date
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 @Composable
@@ -83,6 +91,8 @@ fun ProfileScreen(
 ) {
     val user by userViewModel.userProfile.collectAsState()
     val uiState by userViewModel.uiState.collectAsState()
+    val purchases by userViewModel.purchases.collectAsState()
+    val totalSpent by userViewModel.totalSpent.collectAsState()
     val backgroundBrush = rememberNeonBackgroundBrush()
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -97,6 +107,7 @@ fun ProfileScreen(
     // Refrescar el perfil cuando se carga la pantalla para asegurar que se muestre el usuario correcto
     LaunchedEffect(Unit) {
         userViewModel.refreshProfile()
+        userViewModel.loadPurchases()
     }
     
     // Cargar imagen de perfil cuando el usuario cambia
@@ -170,6 +181,24 @@ fun ProfileScreen(
     ) {
         Scaffold(
             containerColor = Color.Transparent,
+            bottomBar = {
+                BottomNavigationBar(
+                    items = getBottomNavItems(),
+                    selectedRoute = navController.currentDestination?.route,
+                    onItemClick = { route ->
+                        navController.navigate(route) {
+                            launchSingleTop = true
+                            if (navController.currentDestination?.route == route) {
+                                return@navigate
+                            }
+                            popUpTo(Screen.ProductMenu.route) {
+                                saveState = true
+                            }
+                            restoreState = true
+                        }
+                    }
+                )
+            },
             topBar = {
                 TopAppBar(
                     title = {
@@ -274,6 +303,96 @@ fun ProfileScreen(
                             )
                         }
                     }
+                    Spacer(modifier = Modifier.height(32.dp))
+
+                    // Sección de compras
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surface
+                        ),
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(20.dp)
+                        ) {
+                            Text(
+                                text = "Historial de Compras",
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                            
+                            // Total gastado
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = "Total gastado:",
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Text(
+                                    text = formatCurrency(totalSpent),
+                                    style = MaterialTheme.typography.titleLarge,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                            
+                            Spacer(modifier = Modifier.height(8.dp))
+                            
+                            Text(
+                                text = "${purchases.size} compra${if (purchases.size != 1) "s" else ""} realizada${if (purchases.size != 1) "s" else ""}",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            
+                            if (purchases.isNotEmpty()) {
+                                Spacer(modifier = Modifier.height(16.dp))
+                                Divider(
+                                    modifier = Modifier.padding(vertical = 8.dp),
+                                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
+                                )
+                                
+                                // Lista de compras recientes (últimas 5)
+                                Text(
+                                    text = "Compras recientes:",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.SemiBold,
+                                    modifier = Modifier.padding(bottom = 8.dp)
+                                )
+                                
+                                purchases.take(5).forEach { purchase ->
+                                    PurchaseItemCard(purchase = purchase)
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                }
+                                
+                                if (purchases.size > 5) {
+                                    Text(
+                                        text = "... y ${purchases.size - 5} compra${if (purchases.size - 5 != 1) "s" else ""} más",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier.padding(top = 8.dp)
+                                    )
+                                }
+                            } else {
+                                Spacer(modifier = Modifier.height(16.dp))
+                                Text(
+                                    text = "Aún no has realizado ninguna compra",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.padding(vertical = 8.dp)
+                                )
+                            }
+                        }
+                    }
+
                     Spacer(modifier = Modifier.height(32.dp))
 
                     OutlinedButton(
@@ -410,5 +529,62 @@ fun ProfileInfoItem(label: String, value: String) {
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )
+    }
+}
+
+fun formatCurrency(amount: Double): String {
+    // Redondear a entero (sin decimales) ya que CLP no tiene centavos
+    val amountInt = amount.toLong()
+    val clpFormat = NumberFormat.getCurrencyInstance(Locale("es", "CL")).apply {
+        currency = Currency.getInstance("CLP")
+        maximumFractionDigits = 0
+        minimumFractionDigits = 0
+    }
+    return clpFormat.format(amountInt)
+}
+
+fun formatDate(timestamp: Long): String {
+    val date = Date(timestamp)
+    val format = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale("es", "CL"))
+    return format.format(date)
+}
+
+@Composable
+fun PurchaseItemCard(purchase: Purchase) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+        ),
+        shape = RoundedCornerShape(12.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = formatDate(purchase.purchaseDate),
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "Compra #${purchase.id}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            Text(
+                text = formatCurrency(purchase.totalAmount),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary
+            )
+        }
     }
 }

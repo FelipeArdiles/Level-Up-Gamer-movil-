@@ -5,6 +5,7 @@ package com.example.level_up_gamer.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.level_up_gamer.model.User
+import com.example.level_up_gamer.model.Purchase
 import com.example.level_up_gamer.data.DatabaseProvider
 import com.example.level_up_gamer.data.SessionManager
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -44,9 +45,17 @@ class UserViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(UserUiState())
     val uiState: StateFlow<UserUiState> = _uiState.asStateFlow()
 
+    // Estado para las compras del usuario
+    private val _purchases = MutableStateFlow<List<Purchase>>(emptyList())
+    val purchases: StateFlow<List<Purchase>> = _purchases.asStateFlow()
+
+    private val _totalSpent = MutableStateFlow(0.0)
+    val totalSpent: StateFlow<Double> = _totalSpent.asStateFlow()
+
     init {
         // Cargar el ID del usuario actual de la sesión
         refreshProfile()
+        loadPurchases()
     }
 
     fun refreshProfile() {
@@ -107,5 +116,23 @@ class UserViewModel : ViewModel() {
 
     fun clearMessages() {
         _uiState.value = UserUiState()
+    }
+
+    fun loadPurchases() {
+        viewModelScope.launch {
+            val userId = SessionManager.getCurrentUserId()
+            if (userId != null) {
+                try {
+                    _purchases.value = DatabaseProvider.db().purchaseDao().getPurchasesByUserId(userId)
+                    _totalSpent.value = DatabaseProvider.db().purchaseDao().getTotalSpentByUserId(userId)
+                } catch (e: Exception) {
+                    _purchases.value = emptyList()
+                    _totalSpent.value = 0.0
+                }
+            } else {
+                _purchases.value = emptyList()
+                _totalSpent.value = 0.0
+            }
+        }
     }
 }

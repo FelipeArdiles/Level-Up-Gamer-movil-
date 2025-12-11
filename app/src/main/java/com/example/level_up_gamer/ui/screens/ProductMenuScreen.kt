@@ -53,7 +53,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -69,6 +71,8 @@ import com.example.level_up_gamer.R
 import com.example.level_up_gamer.model.Product
 import com.example.level_up_gamer.ui.navigation.Screen
 import com.example.level_up_gamer.ui.theme.rememberNeonBackgroundBrush
+import com.example.level_up_gamer.ui.components.BottomNavigationBar
+import com.example.level_up_gamer.ui.components.getBottomNavItems
 import com.example.level_up_gamer.utils.AdminUtils
 import com.example.level_up_gamer.utils.ImageManager
 import com.example.level_up_gamer.viewmodel.ProductViewModel
@@ -91,6 +95,24 @@ fun ProductMenuScreen(
     val isAdmin = AdminUtils.isAdmin(currentUser)
     val backgroundBrush = rememberNeonBackgroundBrush()
     val snackbarHostState = remember { SnackbarHostState() }
+    
+    // Estado local para controlar la visibilidad del mensaje de éxito
+    var showSuccessMessage by remember { mutableStateOf(false) }
+
+    // Manejar mensajes de éxito: mostrar y ocultar automáticamente después de 3 segundos
+    LaunchedEffect(uiState.successMessage) {
+        if (uiState.successMessage != null) {
+            // Mostrar el mensaje
+            showSuccessMessage = true
+            // Esperar 3 segundos antes de ocultar y limpiar el mensaje
+            kotlinx.coroutines.delay(3000)
+            showSuccessMessage = false
+            productViewModel.clearMessages()
+        } else {
+            // Si el mensaje se limpia externamente, ocultar también
+            showSuccessMessage = false
+        }
+    }
 
     LaunchedEffect(navController.currentBackStackEntry) {
         productViewModel.refreshCart()
@@ -103,6 +125,28 @@ fun ProductMenuScreen(
     ) {
         Scaffold(
             containerColor = Color.Transparent,
+            bottomBar = {
+                BottomNavigationBar(
+                    items = getBottomNavItems(),
+                    selectedRoute = navController.currentDestination?.route,
+                    onItemClick = { route ->
+                        navController.navigate(route) {
+                            // Evitar múltiples instancias de la misma pantalla
+                            launchSingleTop = true
+                            // Si estamos en la misma pantalla, no hacer nada
+                            if (navController.currentDestination?.route == route) {
+                                return@navigate
+                            }
+                            // Limpiar el back stack hasta la pantalla de inicio
+                            popUpTo(Screen.ProductMenu.route) {
+                                saveState = true
+                            }
+                            // Restaurar el estado al volver
+                            restoreState = true
+                        }
+                    }
+                )
+            },
             topBar = {
                 Surface(
                     color = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f),
@@ -256,7 +300,7 @@ fun ProductMenuScreen(
                     uiState.successMessage?.let { success ->
                         item {
                             AnimatedVisibility(
-                                visible = true,
+                                visible = showSuccessMessage,
                                 enter = fadeIn() + expandVertically(),
                                 exit = fadeOut() + shrinkVertically()
                             ) {

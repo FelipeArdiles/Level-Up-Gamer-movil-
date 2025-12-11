@@ -48,7 +48,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
@@ -63,6 +65,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.level_up_gamer.R
 import com.example.level_up_gamer.data.CartItemWithProduct
+import com.example.level_up_gamer.ui.components.BottomNavigationBar
+import com.example.level_up_gamer.ui.components.getBottomNavItems
 import com.example.level_up_gamer.ui.navigation.Screen
 import com.example.level_up_gamer.ui.theme.rememberNeonBackgroundBrush
 import com.example.level_up_gamer.viewmodel.ProductViewModel
@@ -79,19 +83,28 @@ fun CartScreen(
     val cartItems by productViewModel.cartItems.collectAsState()
     val uiState by productViewModel.uiState.collectAsState()
 
-    // Manejar mensajes de éxito: limpiar inmediatamente si no es compra exitosa, o después de 3 segundos si lo es
+    // Estado local para controlar la visibilidad del mensaje de compra exitosa
+    var showSuccessMessage by remember { mutableStateOf(false) }
+
+    // Manejar mensajes de éxito: mostrar y ocultar automáticamente
     LaunchedEffect(uiState.successMessage) {
         val message = uiState.successMessage
         if (message != null) {
             if (message.contains("Compra realizada exitosamente", ignoreCase = true)) {
-                // Esperar 3 segundos antes de limpiar el mensaje de compra exitosa
+                // Mostrar el mensaje
+                showSuccessMessage = true
+                // Esperar 3 segundos antes de ocultar y limpiar el mensaje
                 kotlinx.coroutines.delay(3000)
+                showSuccessMessage = false
                 productViewModel.clearMessages()
             } else {
                 // Limpiar inmediatamente si no es mensaje de compra exitosa
                 kotlinx.coroutines.delay(100)
                 productViewModel.clearMessages()
             }
+        } else {
+            // Si el mensaje se limpia externamente, ocultar también
+            showSuccessMessage = false
         }
     }
 
@@ -113,10 +126,10 @@ fun CartScreen(
     ) {
         // Overlay de mensaje de éxito llamativo - Solo para compra exitosa
         uiState.successMessage?.let { success ->
-            // Solo mostrar el overlay si el mensaje es de compra exitosa
-            if (success.contains("Compra realizada exitosamente", ignoreCase = true)) {
+            // Solo mostrar el overlay si el mensaje es de compra exitosa y showSuccessMessage es true
+            if (success.contains("Compra realizada exitosamente", ignoreCase = true) && showSuccessMessage) {
                 AnimatedVisibility(
-                    visible = true,
+                    visible = showSuccessMessage,
                     enter = fadeIn(animationSpec = tween(300)) + scaleIn(
                         initialScale = 0.5f,
                         animationSpec = spring(
@@ -268,65 +281,85 @@ fun CartScreen(
                 )
             },
             bottomBar = {
-                if (cartItems.isNotEmpty()) {
-                    val total = cartItems.sumOf { it.product.price * it.cartItem.quantity }
-                    val eurToClp = 1000.0
-                    val clpTotal = total * eurToClp
-                    val clpFormat = NumberFormat.getCurrencyInstance(Locale("es", "CL")).apply {
-                        currency = Currency.getInstance("CLP")
-                        maximumFractionDigits = 0
-                    }
+                Column {
+                    // Barra de total y botón de compra (si hay items)
+                    if (cartItems.isNotEmpty()) {
+                        val total = cartItems.sumOf { it.product.price * it.cartItem.quantity }
+                        val eurToClp = 1000.0
+                        val clpTotal = total * eurToClp
+                        val clpFormat = NumberFormat.getCurrencyInstance(Locale("es", "CL")).apply {
+                            currency = Currency.getInstance("CLP")
+                            maximumFractionDigits = 0
+                        }
 
-                    Surface(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .border(
-                                BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)),
-                                shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
-                            ),
-                        tonalElevation = 8.dp,
-                        shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
-                        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f)
-                    ) {
-                        Column(
+                        Surface(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(16.dp)
+                                .border(
+                                    BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)),
+                                    shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
+                                ),
+                            tonalElevation = 8.dp,
+                            shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
+                            color = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f)
                         ) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp)
                             ) {
-                                Text(
-                                    "Total:",
-                                    style = MaterialTheme.typography.titleLarge,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                                Text(
-                                    clpFormat.format(clpTotal),
-                                    style = MaterialTheme.typography.titleLarge,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.primary
-                                )
-                            }
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Button(
-                                onClick = { productViewModel.checkout() },
-                                modifier = Modifier.fillMaxWidth(),
-                                enabled = !uiState.isLoading
-                            ) {
-                                if (uiState.isLoading) {
-                                    CircularProgressIndicator(
-                                        modifier = Modifier.size(24.dp),
-                                        color = MaterialTheme.colorScheme.onPrimary
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Text(
+                                        "Total:",
+                                        style = MaterialTheme.typography.titleLarge,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onSurface
                                     )
-                                } else {
-                                    Text("Realizar Compra")
+                                    Text(
+                                        clpFormat.format(clpTotal),
+                                        style = MaterialTheme.typography.titleLarge,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                }
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Button(
+                                    onClick = { productViewModel.checkout() },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    enabled = !uiState.isLoading
+                                ) {
+                                    if (uiState.isLoading) {
+                                        CircularProgressIndicator(
+                                            modifier = Modifier.size(24.dp),
+                                            color = MaterialTheme.colorScheme.onPrimary
+                                        )
+                                    } else {
+                                        Text("Realizar Compra")
+                                    }
                                 }
                             }
                         }
                     }
+                    // Barra de navegación inferior
+                    BottomNavigationBar(
+                        items = getBottomNavItems(),
+                        selectedRoute = navController.currentDestination?.route,
+                        onItemClick = { route ->
+                            navController.navigate(route) {
+                                launchSingleTop = true
+                                if (navController.currentDestination?.route == route) {
+                                    return@navigate
+                                }
+                                popUpTo(Screen.ProductMenu.route) {
+                                    saveState = true
+                                }
+                                restoreState = true
+                            }
+                        }
+                    )
                 }
             }
         ) { paddingValues ->

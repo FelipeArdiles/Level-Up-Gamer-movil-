@@ -6,8 +6,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.level_up_gamer.model.Product
 import com.example.level_up_gamer.model.CartItem
+import com.example.level_up_gamer.model.Purchase
+import com.example.level_up_gamer.model.PurchaseItem
 import com.example.level_up_gamer.data.DatabaseProvider
 import com.example.level_up_gamer.data.CartItemWithProduct
+import com.example.level_up_gamer.data.SessionManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -197,6 +200,40 @@ class ProductViewModel : ViewModel() {
                         return@launch
                     }
                 }
+
+                // Calcular el total de la compra en CLP (precio en EUR * 1000)
+                val eurToClp = 1000.0
+                val totalAmount = items.sumOf { it.product.price * it.cartItem.quantity * eurToClp }
+                
+                // Obtener el ID del usuario actual
+                val userId = SessionManager.getCurrentUserId()
+                if (userId == null) {
+                    _uiState.value = _uiState.value.copy(
+                        errorMessage = "No hay sesión activa"
+                    )
+                    return@launch
+                }
+
+                // Crear la compra
+                val purchase = Purchase(
+                    userId = userId,
+                    totalAmount = totalAmount,
+                    purchaseDate = System.currentTimeMillis()
+                )
+                val purchaseId = DatabaseProvider.db().purchaseDao().insertPurchase(purchase)
+
+                // Crear los items de la compra (precios en CLP)
+                val purchaseItems = items.map { item ->
+                    PurchaseItem(
+                        purchaseId = purchaseId,
+                        productId = item.product.id,
+                        productName = item.product.name,
+                        quantity = item.cartItem.quantity,
+                        unitPrice = item.product.price * eurToClp,
+                        subtotal = item.product.price * item.cartItem.quantity * eurToClp
+                    )
+                }
+                DatabaseProvider.db().purchaseItemDao().insertPurchaseItems(purchaseItems)
 
                 // Actualizar stock y limpiar carrito
                 for (item in items) {

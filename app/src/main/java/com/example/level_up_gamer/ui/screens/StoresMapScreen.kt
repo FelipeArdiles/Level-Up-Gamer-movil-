@@ -18,6 +18,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavController
 import com.example.level_up_gamer.R
+import com.example.level_up_gamer.ui.components.BottomNavigationBar
+import com.example.level_up_gamer.ui.components.getBottomNavItems
+import com.example.level_up_gamer.ui.navigation.Screen
 import com.mapbox.common.MapboxOptions
 import com.mapbox.geojson.Point
 import com.mapbox.maps.extension.compose.MapboxMap
@@ -34,6 +37,24 @@ fun StoresMapScreen(navController: NavController) {
     }
     
     Scaffold(
+        bottomBar = {
+            BottomNavigationBar(
+                items = getBottomNavItems(),
+                selectedRoute = navController.currentDestination?.route,
+                onItemClick = { route ->
+                    navController.navigate(route) {
+                        launchSingleTop = true
+                        if (navController.currentDestination?.route == route) {
+                            return@navigate
+                        }
+                        popUpTo(Screen.ProductMenu.route) {
+                            saveState = true
+                        }
+                        restoreState = true
+                    }
+                }
+            )
+        },
         topBar = {
             TopAppBar(
                 title = { Text("Mapa de Tiendas") },

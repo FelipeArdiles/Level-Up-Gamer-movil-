@@ -41,6 +41,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.level_up_gamer.model.RemoteGame
+import com.example.level_up_gamer.ui.components.BottomNavigationBar
+import com.example.level_up_gamer.ui.components.getBottomNavItems
+import com.example.level_up_gamer.ui.navigation.Screen
 import com.example.level_up_gamer.ui.theme.rememberNeonBackgroundBrush
 import com.example.level_up_gamer.viewmodel.RemoteGameViewModel
 
@@ -61,6 +64,24 @@ fun GameSuggestionsScreen(
     ) {
         Scaffold(
             containerColor = Color.Transparent,
+            bottomBar = {
+                BottomNavigationBar(
+                    items = getBottomNavItems(),
+                    selectedRoute = navController.currentDestination?.route,
+                    onItemClick = { route ->
+                        navController.navigate(route) {
+                            launchSingleTop = true
+                            if (navController.currentDestination?.route == route) {
+                                return@navigate
+                            }
+                            popUpTo(Screen.ProductMenu.route) {
+                                saveState = true
+                            }
+                            restoreState = true
+                        }
+                    }
+                )
+            },
             topBar = {
                 TopAppBar(
                     title = {
