@@ -363,4 +363,34 @@ class ProductViewModel : ViewModel() {
         }
     }
 
+    fun deleteProduct(productId: Int) {
+        viewModelScope.launch {
+            try {
+                _uiState.value = _uiState.value.copy(
+                    isProcessing = true,
+                    errorMessage = null,
+                    successMessage = null
+                )
+                // Eliminar del carrito si existe
+                val cartItem = DatabaseProvider.db().cartDao().getByProductId(productId)
+                cartItem?.let {
+                    DatabaseProvider.db().cartDao().delete(it)
+                }
+                // Eliminar el producto
+                DatabaseProvider.db().productDao().deleteById(productId)
+                loadProducts()
+                loadCart()
+                _uiState.value = _uiState.value.copy(
+                    isProcessing = false,
+                    successMessage = "Producto eliminado"
+                )
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    isProcessing = false,
+                    errorMessage = "Error al eliminar producto: ${e.message}"
+                )
+            }
+        }
+    }
+
 }

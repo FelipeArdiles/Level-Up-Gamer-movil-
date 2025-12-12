@@ -20,6 +20,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
@@ -27,6 +28,7 @@ import androidx.compose.material.icons.filled.Public
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -38,6 +40,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -284,6 +287,7 @@ fun ProductMenuScreen(
                             onEditProduct = {
                                 navController.navigate(Screen.EditProduct.buildRoute(product.id))
                             },
+                            onDeleteProduct = { productViewModel.deleteProduct(product.id) },
                             canEdit = isAdmin,
                             index = index
                         )
@@ -299,9 +303,11 @@ fun ProductCard(
     product: Product,
     onAddToCart: () -> Unit,
     onEditProduct: () -> Unit,
+    onDeleteProduct: () -> Unit,
     canEdit: Boolean = false,
     index: Int = 0
 ) {
+    var showDeleteDialog by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val stockColor = when {
         product.stock > 10 -> Color(0xFF00FF88)
@@ -502,7 +508,59 @@ fun ProductCard(
                         Spacer(modifier = Modifier.width(4.dp))
                         Text("Editar", fontWeight = FontWeight.Bold)
                     }
+                    
+                    val deleteInteraction = remember { MutableInteractionSource() }
+                    val isDeletePressed by deleteInteraction.collectIsPressedAsState()
+                    val deleteScale by animateFloatAsState(
+                        targetValue = if (isDeletePressed) 0.9f else 1f,
+                        animationSpec = tween(100),
+                        label = "delete_scale"
+                    )
+                    
+                    IconButton(
+                        onClick = { showDeleteDialog = true },
+                        modifier = Modifier.scale(deleteScale),
+                        interactionSource = deleteInteraction
+                    ) {
+                        Icon(
+                            Icons.Default.Delete,
+                            contentDescription = "Eliminar producto",
+                            tint = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
                 }
+            }
+            
+            // Diálogo de confirmación para eliminar
+            if (showDeleteDialog) {
+                AlertDialog(
+                    onDismissRequest = { showDeleteDialog = false },
+                    title = { Text("Eliminar producto") },
+                    text = { 
+                        Text("¿Estás seguro de que deseas eliminar \"${product.name}\"? Esta acción no se puede deshacer.")
+                    },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                onDeleteProduct()
+                                showDeleteDialog = false
+                            }
+                        ) {
+                            Text(
+                                "Eliminar",
+                                color = MaterialTheme.colorScheme.error
+                            )
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(
+                            onClick = { showDeleteDialog = false }
+                        ) {
+                            Text("Cancelar")
+                        }
+                    }
+                )
             }
         }
     }

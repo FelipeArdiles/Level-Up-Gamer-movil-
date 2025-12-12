@@ -29,4 +29,7 @@ interface ProductDao {
     @Query("SELECT * FROM products WHERE id = :productId LIMIT 1")
     suspend fun getById(productId: Int): Product?
 
+    @Query("DELETE FROM products WHERE id = :productId")
+    suspend fun deleteById(productId: Int): Int
+
 }
