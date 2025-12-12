@@ -75,11 +75,20 @@ class UserViewModel : ViewModel() {
                 _uiState.value = UserUiState(isSaving = true)
                 val newPassword = password?.takeIf { it.isNotBlank() } ?: currentUser.password
                 val newAvatarIconId = avatarIconId ?: currentUser.avatarIconId
+                
+                // Si se selecciona un avatar, limpiar la foto de perfil
+                val newProfileImagePath = if (avatarIconId != null) {
+                    null // Limpiar la foto cuando se selecciona un avatar
+                } else {
+                    currentUser.profileImagePath // Mantener la foto si no se cambia el avatar
+                }
+                
                 val updatedUser = currentUser.copy(
                     username = username,
                     email = email,
                     password = newPassword,
-                    avatarIconId = newAvatarIconId
+                    avatarIconId = newAvatarIconId,
+                    profileImagePath = newProfileImagePath
                 )
                 DatabaseProvider.db().userDao().insert(updatedUser)
                 // El Flow se actualizará automáticamente cuando se actualice la base de datos
@@ -102,7 +111,12 @@ class UserViewModel : ViewModel() {
 
             try {
                 _uiState.value = UserUiState(isSaving = true)
-                val updatedUser = currentUser.copy(profileImagePath = profileImagePath)
+                // Cuando se actualiza la foto, limpiar el avatar (establecer a 0 = por defecto)
+                // para que la foto tenga prioridad
+                val updatedUser = currentUser.copy(
+                    profileImagePath = profileImagePath,
+                    avatarIconId = if (profileImagePath != null) 0 else currentUser.avatarIconId
+                )
                 DatabaseProvider.db().userDao().insert(updatedUser)
                 // El Flow se actualizará automáticamente cuando se actualice la base de datos
                 _uiState.value = UserUiState(successMessage = "Imagen de perfil actualizada")
