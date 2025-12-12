@@ -14,9 +14,9 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
-// 1. Esquema de Colores Oscuro (Nuestro Tema Gamer Principal)
+// 1. Esquema de Colores Oscuro (Nuestro Tema Gamer Principal mejorado)
 private val DarkColorScheme = darkColorScheme(
-    primary = PrimaryGreen,          // Verde principal para botones, AppBar iconos
+    primary = PrimaryGreen,          // Verde neón principal para botones, AppBar iconos
     onPrimary = OnPrimaryDark,       // Texto sobre PrimaryGreen
     secondary = SecondaryDark,       // Verde claro para realces
     onSecondary = OnSecondaryDark,   // Texto sobre Secondary
@@ -24,10 +24,14 @@ private val DarkColorScheme = darkColorScheme(
     onBackground = OnBackgroundLight, // Texto sobre Background
     surface = SurfaceDark,           // Gris oscuro para Cards, TextFields
     onSurface = OnSurfaceLight,      // Texto sobre Surface/Background
-    surfaceVariant = Color(0xFF2A2A2A), // Variante de superficie
+    surfaceVariant = SurfaceDarkElevated, // Variante de superficie mejorada
     onSurfaceVariant = Color(0xFFCCCCCC), // Texto sobre surfaceVariant
     error = ErrorRed,                // Rojo para errores de login
-    onError = OnError                // Texto sobre error
+    onError = OnError,               // Texto sobre error
+    primaryContainer = PrimaryGreen.copy(alpha = 0.2f), // Contenedor primario
+    onPrimaryContainer = PrimaryGreen, // Texto sobre contenedor primario
+    secondaryContainer = SecondaryDark.copy(alpha = 0.2f), // Contenedor secundario
+    onSecondaryContainer = SecondaryDark // Texto sobre contenedor secundario
 )
 
 // 2. Esquema de Colores Claro (Por si acaso, aunque no lo usaremos)

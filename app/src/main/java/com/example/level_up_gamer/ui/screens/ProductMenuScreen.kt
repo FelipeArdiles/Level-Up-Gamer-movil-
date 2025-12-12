@@ -36,6 +36,7 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -45,10 +46,15 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.clickable
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -58,6 +64,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -71,6 +79,11 @@ import com.example.level_up_gamer.R
 import com.example.level_up_gamer.model.Product
 import com.example.level_up_gamer.ui.navigation.Screen
 import com.example.level_up_gamer.ui.theme.rememberNeonBackgroundBrush
+import com.example.level_up_gamer.ui.theme.rememberAnimatedNeonBackgroundBrush
+import com.example.level_up_gamer.ui.theme.animateEnterScale
+import com.example.level_up_gamer.ui.theme.animateEnterFade
+import com.example.level_up_gamer.ui.theme.PrimaryGreen
+import com.example.level_up_gamer.ui.theme.SurfaceDarkElevated
 import com.example.level_up_gamer.ui.components.BottomNavigationBar
 import com.example.level_up_gamer.ui.components.getBottomNavItems
 import com.example.level_up_gamer.utils.AdminUtils
@@ -93,7 +106,7 @@ fun ProductMenuScreen(
     val uiState by productViewModel.uiState.collectAsState()
     val currentUser by userViewModel.userProfile.collectAsState()
     val isAdmin = AdminUtils.isAdmin(currentUser)
-    val backgroundBrush = rememberNeonBackgroundBrush()
+    val backgroundBrush = rememberAnimatedNeonBackgroundBrush()
     val snackbarHostState = remember { SnackbarHostState() }
     
     // Estado local para controlar la visibilidad del mensaje de éxito
@@ -263,14 +276,16 @@ fun ProductMenuScreen(
                             }
                         }
                     }
-                    items(products) { product ->
+                    items(products.size) { index ->
+                        val product = products[index]
                         ProductCard(
                             product = product,
                             onAddToCart = { productViewModel.addToCart(product.id) },
                             onEditProduct = {
                                 navController.navigate(Screen.EditProduct.buildRoute(product.id))
                             },
-                            canEdit = isAdmin
+                            canEdit = isAdmin,
+                            index = index
                         )
                     }
                 }
@@ -284,13 +299,14 @@ fun ProductCard(
     product: Product,
     onAddToCart: () -> Unit,
     onEditProduct: () -> Unit,
-    canEdit: Boolean = false
+    canEdit: Boolean = false,
+    index: Int = 0
 ) {
     val context = LocalContext.current
     val stockColor = when {
-        product.stock > 10 -> Color.Green
-        product.stock > 0 -> Color.Yellow
-        else -> Color.Red
+        product.stock > 10 -> Color(0xFF00FF88)
+        product.stock > 0 -> Color(0xFFFFAA00)
+        else -> Color(0xFFFF4040)
     }
 
     val eurToClp = 1000.0
@@ -299,16 +315,38 @@ fun ProductCard(
         currency = Currency.getInstance("CLP")
         maximumFractionDigits = 0
     }
+    
+    // Animación de entrada
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.95f else 1f,
+        animationSpec = tween(150),
+        label = "card_scale"
+    )
+    
+    val elevation by animateFloatAsState(
+        targetValue = if (isPressed) 4f else 12f,
+        animationSpec = tween(150),
+        label = "card_elevation"
+    )
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 8.dp, vertical = 4.dp),
+            .padding(horizontal = 8.dp, vertical = 4.dp)
+            .animateEnterScale(enabled = true, initialScale = 0.8f)
+            .animateEnterFade(enabled = true)
+            .scale(scale)
+            .shadow(elevation.dp, shape = RoundedCornerShape(20.dp), spotColor = PrimaryGreen.copy(alpha = 0.5f)),
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f)
+            containerColor = SurfaceDarkElevated.copy(alpha = 0.95f)
         ),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f))
+        border = BorderStroke(
+            1.5.dp,
+            PrimaryGreen.copy(alpha = if (isPressed) 0.6f else 0.4f)
+        )
     ) {
         Column(
             modifier = Modifier
@@ -415,23 +453,54 @@ fun ProductCard(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
+                val addToCartInteraction = remember { MutableInteractionSource() }
+                val isAddToCartPressed by addToCartInteraction.collectIsPressedAsState()
+                val addToCartScale by animateFloatAsState(
+                    targetValue = if (isAddToCartPressed) 0.9f else 1f,
+                    animationSpec = tween(100),
+                    label = "button_scale"
+                )
+                
                 Button(
                     onClick = onAddToCart,
                     enabled = product.stock > 0,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier
+                        .weight(1f)
+                        .scale(addToCartScale),
+                    interactionSource = addToCartInteraction,
+                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                        containerColor = PrimaryGreen,
+                        contentColor = Color.Black,
+                        disabledContainerColor = Color.Gray.copy(alpha = 0.3f)
+                    )
                 ) {
                     Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text("Al carrito")
+                    Text("Al carrito", fontWeight = FontWeight.Bold)
                 }
                 if (canEdit) {
+                    val editInteraction = remember { MutableInteractionSource() }
+                    val isEditPressed by editInteraction.collectIsPressedAsState()
+                    val editScale by animateFloatAsState(
+                        targetValue = if (isEditPressed) 0.9f else 1f,
+                        animationSpec = tween(100),
+                        label = "edit_scale"
+                    )
+                    
                     OutlinedButton(
                         onClick = onEditProduct,
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier
+                            .weight(1f)
+                            .scale(editScale),
+                        interactionSource = editInteraction,
+                        border = BorderStroke(1.5.dp, PrimaryGreen.copy(alpha = 0.7f)),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = PrimaryGreen
+                        )
                     ) {
                         Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(18.dp))
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text("Editar")
+                        Text("Editar", fontWeight = FontWeight.Bold)
                     }
                 }
             }

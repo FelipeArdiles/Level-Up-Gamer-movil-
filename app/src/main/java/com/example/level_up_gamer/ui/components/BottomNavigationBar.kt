@@ -1,8 +1,12 @@
 package com.example.level_up_gamer.ui.components
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,10 +28,12 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -35,6 +41,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.level_up_gamer.ui.theme.PrimaryGreen
+import com.example.level_up_gamer.ui.theme.SurfaceDarkElevated
 
 data class BottomNavItem(
     val route: String,
@@ -56,7 +64,7 @@ fun BottomNavigationBar(
             .height(70.dp)
             .padding(horizontal = 12.dp, vertical = 8.dp)
     ) {
-        // Fondo con efecto frosted glass (translúcido) - estilo similar a la imagen
+        // Fondo con efecto frosted glass mejorado con gradiente neón
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -65,15 +73,15 @@ fun BottomNavigationBar(
                 .background(
                     brush = Brush.verticalGradient(
                         colors = listOf(
-                            MaterialTheme.colorScheme.surface.copy(alpha = 0.75f),
-                            MaterialTheme.colorScheme.surface.copy(alpha = 0.85f)
+                            SurfaceDarkElevated.copy(alpha = 0.95f),
+                            SurfaceDarkElevated.copy(alpha = 0.98f)
                         )
                     )
                 )
                 .shadow(
-                    elevation = 12.dp,
+                    elevation = 16.dp,
                     shape = RoundedCornerShape(30.dp),
-                    spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+                    spotColor = PrimaryGreen.copy(alpha = 0.4f)
                 )
         ) {
             Row(
@@ -101,22 +109,67 @@ private fun BottomNavItem(
     isSelected: Boolean,
     onClick: () -> Unit
 ) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    
+    // Animaciones
+    val scale by animateFloatAsState(
+        targetValue = when {
+            isPressed -> 0.85f
+            isSelected -> 1.1f
+            else -> 1f
+        },
+        animationSpec = spring(
+            dampingRatio = 0.6f,
+            stiffness = 400f
+        ),
+        label = "nav_item_scale"
+    )
+    
+    val iconSize by animateFloatAsState(
+        targetValue = if (isSelected) 28f else 24f,
+        animationSpec = spring(
+            dampingRatio = 0.7f,
+            stiffness = 500f
+        ),
+        label = "icon_size"
+    )
+    
+    val backgroundColor by animateFloatAsState(
+        targetValue = if (isSelected) 0.6f else 0f,
+        animationSpec = tween(300),
+        label = "bg_alpha"
+    )
+
     Box(
         modifier = Modifier
             .width(70.dp)
             .height(50.dp)
+            .scale(scale)
             .clip(RoundedCornerShape(20.dp))
             .background(
-                if (isSelected) {
-                    MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
+                brush = if (isSelected) {
+                    Brush.linearGradient(
+                        colors = listOf(
+                            PrimaryGreen.copy(alpha = backgroundColor),
+                            PrimaryGreen.copy(alpha = backgroundColor * 0.8f)
+                        )
+                    )
                 } else {
-                    Color.Transparent
+                    Brush.linearGradient(
+                        colors = listOf(Color.Transparent, Color.Transparent)
+                    )
                 }
+            )
+            .shadow(
+                elevation = if (isSelected) 8.dp else 0.dp,
+                shape = RoundedCornerShape(20.dp),
+                spotColor = PrimaryGreen.copy(alpha = if (isSelected) 0.5f else 0f)
             )
             .clickable(
                 onClick = onClick,
                 indication = null,
-                interactionSource = remember { MutableInteractionSource() }
+                interactionSource = interactionSource
             ),
         contentAlignment = Alignment.Center
     ) {
@@ -132,9 +185,9 @@ private fun BottomNavItem(
                     item.icon
                 },
                 contentDescription = item.label,
-                modifier = Modifier.size(24.dp),
+                modifier = Modifier.size(iconSize.dp),
                 tint = if (isSelected) {
-                    MaterialTheme.colorScheme.primary
+                    PrimaryGreen
                 } else {
                     MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                 }
@@ -142,10 +195,10 @@ private fun BottomNavItem(
             Spacer(modifier = Modifier.height(2.dp))
             Text(
                 text = item.label,
-                fontSize = 11.sp,
+                fontSize = if (isSelected) 12.sp else 11.sp,
                 fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
                 color = if (isSelected) {
-                    MaterialTheme.colorScheme.primary
+                    PrimaryGreen
                 } else {
                     MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                 }
