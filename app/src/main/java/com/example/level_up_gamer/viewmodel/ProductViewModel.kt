@@ -201,9 +201,8 @@ class ProductViewModel : ViewModel() {
                     }
                 }
 
-                // Calcular el total de la compra en CLP (precio en EUR * 1000)
-                val eurToClp = 1000.0
-                val totalAmount = items.sumOf { it.product.price * it.cartItem.quantity * eurToClp }
+                // El precio ya está en CLP, calcular el total directamente
+                val totalAmount = items.sumOf { it.product.price * it.cartItem.quantity }
                 
                 // Obtener el ID del usuario actual
                 val userId = SessionManager.getCurrentUserId()
@@ -222,15 +221,15 @@ class ProductViewModel : ViewModel() {
                 )
                 val purchaseId = DatabaseProvider.db().purchaseDao().insertPurchase(purchase)
 
-                // Crear los items de la compra (precios en CLP)
+                // Crear los items de la compra (precios ya están en CLP)
                 val purchaseItems = items.map { item ->
                     PurchaseItem(
                         purchaseId = purchaseId,
                         productId = item.product.id,
                         productName = item.product.name,
                         quantity = item.cartItem.quantity,
-                        unitPrice = item.product.price * eurToClp,
-                        subtotal = item.product.price * item.cartItem.quantity * eurToClp
+                        unitPrice = item.product.price,
+                        subtotal = item.product.price * item.cartItem.quantity
                     )
                 }
                 DatabaseProvider.db().purchaseItemDao().insertPurchaseItems(purchaseItems)
@@ -363,4 +362,5 @@ class ProductViewModel : ViewModel() {
             }
         }
     }
+
 }

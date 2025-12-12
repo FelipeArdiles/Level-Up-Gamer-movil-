@@ -23,19 +23,18 @@ object DatabaseProvider {
                     )
                         .fallbackToDestructiveMigration()
                         .build()
-                    // Semilla de productos por defecto si la tabla está vacía (bloqueante breve para asegurar disponibilidad)
+                    // Semilla de productos por defecto (bloqueante breve para asegurar disponibilidad)
+                    // Siempre actualizamos los productos para asegurar precios correctos en CLP
                     runBlocking {
                         withContext(Dispatchers.IO) {
                             val dao = instance!!.productDao()
-                            val count = dao.count()
-                            // Si hay menos de 13, insertamos los 13 (REPLACE actualizará los existentes)
-                            if (count < 13) {
-                                dao.insertAll(
+                            // Insertar/actualizar todos los productos con precios en CLP
+                            dao.insertAll(
                                     listOf(
                                         Product(
                                             id = 1,
                                             name = "Elden Ring: Shadow of the Erdtree Edition",
-                                            price = 89.99,
+                                            price = 75000.0,
                                             description = "Aventura épica de mundo abierto de FromSoftware. Edición con DLC.",
                                             imageResId = R.drawable.elden_ring,
                                             stock = 5
@@ -43,7 +42,7 @@ object DatabaseProvider {
                                         Product(
                                             id = 2,
                                             name = "The Legend of Zelda: Tears of the Kingdom",
-                                            price = 69.99,
+                                            price = 70000.0,
                                             description = "La última entrega de la saga de Hyrule, exploración y construcción.",
                                             imageResId = R.drawable.zelda_totk,
                                             stock = 0
@@ -51,7 +50,7 @@ object DatabaseProvider {
                                         Product(
                                             id = 3,
                                             name = "Cyberpunk 2077 (Ultimate Edition)",
-                                            price = 59.99,
+                                            price = 65000.0,
                                             description = "RPG futurista en Night City con la expansión Phantom Liberty.",
                                             imageResId = R.drawable.cyberpunk,
                                             stock = 12
@@ -59,7 +58,7 @@ object DatabaseProvider {
                                         Product(
                                             id = 4,
                                             name = "Grand Theft Auto VI",
-                                            price = 69.99,
+                                            price = 75000.0,
                                             description = "El esperado regreso de la saga de mundo abierto de Rockstar.",
                                             imageResId = R.drawable.gta_vi,
                                             stock = 8
@@ -67,7 +66,7 @@ object DatabaseProvider {
                                         Product(
                                             id = 5,
                                             name = "Call of Duty: Black Ops 6",
-                                            price = 69.99,
+                                            price = 65000.0,
                                             description = "Shooter en primera persona con campaña y multijugador intensos.",
                                             imageResId = R.drawable.cod_bo6,
                                             stock = 15
@@ -75,7 +74,7 @@ object DatabaseProvider {
                                         Product(
                                             id = 6,
                                             name = "EA Sports FC 25",
-                                            price = 69.99,
+                                            price = 70000.0,
                                             description = "Fútbol de nueva generación con mejoras en Ultimate Team.",
                                             imageResId = R.drawable.ea_fc25,
                                             stock = 20
@@ -83,7 +82,7 @@ object DatabaseProvider {
                                         Product(
                                             id = 7,
                                             name = "Helldivers 2",
-                                            price = 39.99,
+                                            price = 32000.0,
                                             description = "Acción cooperativa intensa para defender la Super Tierra.",
                                             imageResId = R.drawable.helldivers2,
                                             stock = 7
@@ -91,7 +90,7 @@ object DatabaseProvider {
                                         Product(
                                             id = 8,
                                             name = "Baldur's Gate 3",
-                                            price = 59.99,
+                                            price = 70000.0,
                                             description = "RPG por turnos aclamado, basado en D&D.",
                                             imageResId = R.drawable.baldurs_gate_3,
                                             stock = 9
@@ -99,7 +98,7 @@ object DatabaseProvider {
                                         Product(
                                             id = 9,
                                             name = "Starfield",
-                                            price = 69.99,
+                                            price = 65000.0,
                                             description = "Aventura espacial de Bethesda con exploración de galaxias.",
                                             imageResId = R.drawable.starfield,
                                             stock = 6
@@ -107,7 +106,7 @@ object DatabaseProvider {
                                         Product(
                                             id = 10,
                                             name = "Dragon's Dogma 2",
-                                            price = 69.99,
+                                            price = 70000.0,
                                             description = "ARPG de mundo abierto con peones y combates dinámicos.",
                                             imageResId = R.drawable.dragons_dogma_2,
                                             stock = 10
@@ -115,7 +114,7 @@ object DatabaseProvider {
                                         Product(
                                             id = 11,
                                             name = "Alan Wake 2",
-                                            price = 49.99,
+                                            price = 50000.0,
                                             description = "Thriller de horror psicológico con narrativa dual.",
                                             imageResId = R.drawable.alan_wake_2,
                                             stock = 4
@@ -123,7 +122,7 @@ object DatabaseProvider {
                                         Product(
                                             id = 12,
                                             name = "Assassin's Creed Mirage",
-                                            price = 49.99,
+                                            price = 45000.0,
                                             description = "Sigilo y parkour en Bagdad, regreso a las raíces de la saga.",
                                             imageResId = R.drawable.ac_mirage,
                                             stock = 11
@@ -131,14 +130,13 @@ object DatabaseProvider {
                                         Product(
                                             id = 13,
                                             name = "Resident Evil 4 Remake",
-                                            price = 39.99,
+                                            price = 40000.0,
                                             description = "Reinvención del clásico survival horror de Capcom.",
                                             imageResId = R.drawable.re4_remake,
                                             stock = 13
                                         )
                                     )
                                 )
-                            }
                         }
                     }
                 }

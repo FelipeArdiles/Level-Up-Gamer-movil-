@@ -56,6 +56,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import java.text.DecimalFormat
+import java.text.DecimalFormatSymbols
+import java.util.Locale
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
@@ -68,6 +71,9 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import kotlinx.coroutines.launch
+
+// Formato chileno: punto como separador de miles
+private val numberFormat = DecimalFormat("#,###", DecimalFormatSymbols(Locale("es", "CL")))
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 @Composable
@@ -90,7 +96,14 @@ fun ProductFormScreen(
 
     var name by rememberSaveable { mutableStateOf(currentProduct?.name.orEmpty()) }
     var description by rememberSaveable { mutableStateOf(currentProduct?.description.orEmpty()) }
-    var priceInput by rememberSaveable { mutableStateOf(currentProduct?.price?.toString().orEmpty()) }
+    // Mostrar el precio completo en CLP (sin dividir por 1000)
+    var priceInput by rememberSaveable { 
+        mutableStateOf(
+            currentProduct?.price?.let { 
+                numberFormat.format(it.toLong())
+            } ?: ""
+        )
+    }
     var stockInput by rememberSaveable { mutableStateOf(currentProduct?.stock?.toString().orEmpty()) }
     var selectedImageResId by rememberSaveable {
         mutableStateOf(currentProduct?.imageResId ?: R.drawable.level_up_logo)
@@ -165,7 +178,8 @@ fun ProductFormScreen(
         currentProduct?.let {
             name = it.name
             description = it.description
-            priceInput = it.price.toString()
+            // Mostrar el precio completo en CLP con formato de miles
+            priceInput = numberFormat.format(it.price.toLong())
             stockInput = it.stock.toString()
             selectedImageResId = it.imageResId
             selectedImagePath = it.imagePath
@@ -302,7 +316,17 @@ fun ProductFormScreen(
 
             OutlinedTextField(
                 value = priceInput,
-                onValueChange = { priceInput = it.filter { char -> char.isDigit() || char == '.' || char == ',' } },
+                onValueChange = { newValue ->
+                    // Solo permitir números, remover separadores de miles para guardar
+                    val digitsOnly = newValue.filter { it.isDigit() }
+                    if (digitsOnly.isEmpty()) {
+                        priceInput = ""
+                    } else {
+                        // Formatear con separadores de miles mientras el usuario escribe
+                        val number = digitsOnly.toLongOrNull() ?: 0L
+                        priceInput = numberFormat.format(number)
+                    }
+                },
                 label = { Text("Precio (CLP)") },
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -365,8 +389,8 @@ fun ProductFormScreen(
                         label = { Text("Imagen predefinida") },
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = imageMenuExpanded) },
                         modifier = Modifier
-                            .menuAnchor()
                             .fillMaxWidth()
+                            .menuAnchor()
                     )
 
                     ExposedDropdownMenu(
@@ -390,9 +414,11 @@ fun ProductFormScreen(
 
             Button(
                 onClick = {
-                    val price = priceInput.replace(",", ".").toDoubleOrNull() ?: 0.0
+                    // Remover separadores de miles (punto en formato chileno) y convertir a número
+                    val priceString = priceInput.replace(".", "").replace(",", "")
+                    val price = priceString.toDoubleOrNull() ?: 0.0
                     val stock = stockInput.toIntOrNull() ?: 0
-                    if (isEdit && productId != null) {
+                    if (isEdit) {
                         productViewModel.updateProduct(
                             productId = productId,
                             name = name.trim(),

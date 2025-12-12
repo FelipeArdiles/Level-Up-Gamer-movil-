@@ -268,9 +268,8 @@ fun CartScreen(
                 Column {
                     // Barra de total y botón de compra (si hay items)
                     if (cartItems.isNotEmpty()) {
-                        val total = cartItems.sumOf { it.product.price * it.cartItem.quantity }
-                        val eurToClp = 1000.0
-                        val clpTotal = total * eurToClp
+                        // El precio ya está en CLP, no necesita conversión
+                        val clpTotal = cartItems.sumOf { it.product.price * it.cartItem.quantity }
                         val clpFormat = NumberFormat.getCurrencyInstance(Locale("es", "CL")).apply {
                             currency = Currency.getInstance("CLP")
                             maximumFractionDigits = 0
@@ -413,8 +412,8 @@ fun CartItemCard(
     onQuantityChange: (Int) -> Unit,
     onRemove: () -> Unit
 ) {
-    val eurToClp = 1000.0
-    val clpAmount = item.product.price * eurToClp
+    // El precio ya está en CLP, no necesita conversión
+    val clpAmount = item.product.price
     val clpFormat = NumberFormat.getCurrencyInstance(Locale("es", "CL")).apply {
         currency = Currency.getInstance("CLP")
         maximumFractionDigits = 0

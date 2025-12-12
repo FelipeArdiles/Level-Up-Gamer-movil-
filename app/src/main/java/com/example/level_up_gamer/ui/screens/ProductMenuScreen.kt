@@ -309,8 +309,8 @@ fun ProductCard(
         else -> Color(0xFFFF4040)
     }
 
-    val eurToClp = 1000.0
-    val clpAmount = product.price * eurToClp
+    // El precio ya está en CLP, no necesita conversión
+    val clpAmount = product.price
     val clpFormat = NumberFormat.getCurrencyInstance(Locale("es", "CL")).apply {
         currency = Currency.getInstance("CLP")
         maximumFractionDigits = 0
